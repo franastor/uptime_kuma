@@ -5,6 +5,21 @@ export type MonitorStatus =
   | "pending"
   | "maintenance";
 
+export interface KumaMonitorTag {
+  tag_id?: number;
+  id?: number;
+  name?: string;
+  color?: string;
+  value?: string;
+}
+
+export interface MonitorTag {
+  id: number | string;
+  name: string;
+  color: string | null;
+  value: string | null;
+}
+
 export interface KumaMonitor {
   id: number;
   name: string;
@@ -15,7 +30,7 @@ export interface KumaMonitor {
   interval?: number;
   active?: boolean;
   description?: string;
-  tags?: unknown[];
+  tags?: KumaMonitorTag[];
 }
 
 export interface KumaHeartbeat {
@@ -36,22 +51,14 @@ export interface Monitor {
   interval: number | null;
   active: boolean;
   description: string | null;
-
+  tags: MonitorTag[];
   status: MonitorStatus;
-
   ping: number | null;
-
   message: string | null;
-
   uptime: number | null;
-
   lastHeartbeatAt: string | null;
-
   duration: number | null;
-
   retries: number;
-
   important: boolean;
-
   previousStatus: MonitorStatus | null;
 }

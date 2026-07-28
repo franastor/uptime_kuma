@@ -4,6 +4,7 @@ import type {
 } from "@/src/modules/subscription/types/subscription";
 
 export const FREE_SERVER_LIMIT = 1;
+export const FREE_FAVORITE_LIMIT = 3;
 
 export const PLAN_FEATURES: Record<
   SubscriptionPlan,

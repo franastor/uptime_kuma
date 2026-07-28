@@ -1,4 +1,5 @@
 import {
+  FREE_FAVORITE_LIMIT,
   FREE_SERVER_LIMIT,
   PLAN_FEATURES,
 } from "@/src/modules/subscription/config/subscription.config";
@@ -22,5 +23,16 @@ export function canAddServer(
   return (
     canUseFeature(plan, "unlimited-servers") ||
     currentServerCount < FREE_SERVER_LIMIT
+  );
+}
+
+
+export function canAddFavorite(
+  plan: SubscriptionPlan,
+  currentFavoriteCount: number,
+): boolean {
+  return (
+    canUseFeature(plan, "favorites") ||
+    currentFavoriteCount < FREE_FAVORITE_LIMIT
   );
 }
