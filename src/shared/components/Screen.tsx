@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from "react";
+import type { PropsWithChildren, RefObject } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -12,22 +12,22 @@ import { colors, spacing } from "@/src/shared/theme";
 
 type ScreenProps = PropsWithChildren<{
   scroll?: boolean;
+  scrollRef?: RefObject<ScrollView | null>;
   contentContainerStyle?: StyleProp<ViewStyle>;
 }>;
 
 export function Screen({
   children,
   scroll = false,
+  scrollRef,
   contentContainerStyle,
 }: ScreenProps) {
   if (scroll) {
     return (
       <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
         <ScrollView
-          contentContainerStyle={[
-            styles.scrollContent,
-            contentContainerStyle,
-          ]}
+          ref={scrollRef}
+          contentContainerStyle={[styles.scrollContent, contentContainerStyle]}
           keyboardShouldPersistTaps="handled"
         >
           {children}
@@ -44,16 +44,8 @@ export function Screen({
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-
-  content: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-
+  safeArea: { flex: 1, backgroundColor: colors.background },
+  content: { flex: 1, backgroundColor: colors.background },
   scrollContent: {
     flexGrow: 1,
     padding: spacing.xl,

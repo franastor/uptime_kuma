@@ -1,6 +1,7 @@
 import type { Monitor } from "@/src/modules/monitor/types/monitor";
+import { getMonitorCategory } from "@/src/modules/monitor/utils/monitorState";
 
-export type IncidentSeverity = "critical" | "pending";
+export type IncidentSeverity = "critical" | "pending" | "no-data";
 
 export type ActiveIncident = {
   monitor: Monitor;
@@ -9,28 +10,35 @@ export type ActiveIncident = {
 };
 
 const severityRank = (severity: IncidentSeverity): number => {
-  return severity === "critical" ? 0 : 1;
+  if (severity === "critical") {
+    return 0;
+  }
+
+  if (severity === "pending") {
+    return 1;
+  }
+
+  return 2;
 };
 
 const getIncidentSeverity = (
-  monitor: Monitor
+  monitor: Monitor,
 ): IncidentSeverity | null => {
-  if (monitor.status === "down") {
-    return "critical";
+  const category = getMonitorCategory(monitor);
+
+  if (category === "no-data") {
+    return "no-data";
   }
 
-  if (
-    monitor.status === "pending" ||
-    monitor.status === "unknown"
-  ) {
-    return "pending";
+  if (category !== "incident") {
+    return null;
   }
 
-  return null;
+  return monitor.status === "down" ? "critical" : "pending";
 };
 
 export const getActiveIncidents = (
-  monitors: Monitor[]
+  monitors: Monitor[],
 ): ActiveIncident[] => {
   return monitors
     .map((monitor): ActiveIncident | null => {
@@ -47,13 +55,11 @@ export const getActiveIncidents = (
       };
     })
     .filter(
-      (incident): incident is ActiveIncident =>
-        incident !== null
+      (incident): incident is ActiveIncident => incident !== null,
     )
     .sort((left, right) => {
       const severityDifference =
-        severityRank(left.severity) -
-        severityRank(right.severity);
+        severityRank(left.severity) - severityRank(right.severity);
 
       if (severityDifference !== 0) {
         return severityDifference;
@@ -62,7 +68,6 @@ export const getActiveIncidents = (
       const leftTime = left.startedAt
         ? new Date(left.startedAt).getTime()
         : Number.MAX_SAFE_INTEGER;
-
       const rightTime = right.startedAt
         ? new Date(right.startedAt).getTime()
         : Number.MAX_SAFE_INTEGER;

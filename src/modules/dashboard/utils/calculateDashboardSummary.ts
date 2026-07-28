@@ -1,5 +1,6 @@
 import type { DashboardSummary } from "@/src/modules/dashboard/types/dashboard";
 import type { Monitor } from "@/src/modules/monitor/types/monitor";
+import { getMonitorCategory } from "@/src/modules/monitor/utils/monitorState";
 
 export function calculateDashboardSummary(
   monitors: Monitor[],
@@ -13,29 +14,32 @@ export function calculateDashboardSummary(
   let pingCount = 0;
 
   for (const monitor of monitors) {
-    if (!monitor.active) {
-      paused += 1;
-      continue;
-    }
+    const category = getMonitorCategory(monitor);
 
-    switch (monitor.status) {
+    switch (category) {
       case "up":
         up += 1;
         break;
-      case "down":
-        down += 1;
+      case "paused":
+        paused += 1;
         break;
-      case "pending":
-      case "maintenance":
-        pending += 1;
-        break;
-      case "unknown":
-      default:
+      case "no-data":
         unknown += 1;
+        break;
+      case "incident":
+        if (monitor.status === "down") {
+          down += 1;
+        } else {
+          pending += 1;
+        }
         break;
     }
 
-    if (monitor.ping !== null && Number.isFinite(monitor.ping)) {
+    if (
+      category !== "paused" &&
+      monitor.ping !== null &&
+      Number.isFinite(monitor.ping)
+    ) {
       pingTotal += monitor.ping;
       pingCount += 1;
     }
@@ -48,10 +52,7 @@ export function calculateDashboardSummary(
     pending,
     paused,
     unknown,
-    averagePing:
-      pingCount > 0
-        ? Math.round(pingTotal / pingCount)
-        : null,
+    averagePing: pingCount > 0 ? Math.round(pingTotal / pingCount) : null,
     activeIncidents: down + pending,
   };
 }
