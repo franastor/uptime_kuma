@@ -129,7 +129,16 @@ import {
         null,
       );
   
-      await onConfirm(token);
+      try {
+        await onConfirm(token);
+      } catch (confirmError) {
+        console.error("Two-factor confirmation failed:", confirmError);
+        setValidationError(
+          confirmError instanceof Error
+            ? confirmError.message
+            : "No se pudo validar el código de autenticación.",
+        );
+      }
     }
   
     const displayedError =

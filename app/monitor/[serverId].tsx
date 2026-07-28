@@ -10,6 +10,8 @@ import {
 } from "react-native";
 
 import { calculateDashboardSummary } from "@/src/modules/dashboard/utils/calculateDashboardSummary";
+import { IncidentCard } from "@/src/modules/incidents/components/IncidentCard";
+import { getActiveIncidents } from "@/src/modules/incidents/utils/getActiveIncidents";
 import { MonitorCard } from "@/src/modules/monitor/components/MonitorCard";
 import {
   MonitorFilters,
@@ -117,6 +119,7 @@ export default function MonitorsScreen() {
     [favoriteIdsByServer, serverId],
   );
   const summary = calculateDashboardSummary(monitors);
+  const activeIncidents = useMemo(() => getActiveIncidents(monitors), [monitors]);
   const hasAdvancedDashboard = canUseFeature(
     plan,
     "advanced-dashboard",
@@ -294,6 +297,42 @@ export default function MonitorsScreen() {
                 accentColor={colors.info}
                 helper={`${summary.paused} pausados · ${summary.unknown} sin datos`}
               />
+            </View>
+
+            <View style={styles.operationsSection}>
+              <View style={styles.operationsHeader}>
+                <View style={styles.dashboardTitleContainer}>
+                  <Text style={styles.sectionTitle}>Centro de operaciones</Text>
+                  <Text style={styles.sectionDescription}>
+                    Lo que necesita tu atención ahora mismo.
+                  </Text>
+                </View>
+                <View style={[styles.incidentCounter, activeIncidents.length === 0 && styles.incidentCounterHealthy]}>
+                  <Text style={[styles.incidentCounterText, activeIncidents.length === 0 && styles.incidentCounterHealthyText]}>
+                    {activeIncidents.length}
+                  </Text>
+                </View>
+              </View>
+
+              {activeIncidents.length > 0 ? (
+                <View style={styles.incidentList}>
+                  {activeIncidents.map((incident) => (
+                    <IncidentCard key={incident.monitor.id} incident={incident} />
+                  ))}
+                </View>
+              ) : (
+                <View style={styles.healthyCard}>
+                  <View style={styles.healthyIcon}>
+                    <MaterialIcons name="verified" size={26} color={colors.background} />
+                  </View>
+                  <View style={styles.healthyInformation}>
+                    <Text style={styles.healthyTitle}>Todo funciona correctamente</Text>
+                    <Text style={styles.healthyDescription}>
+                      No hay monitores caídos ni comprobaciones pendientes.
+                    </Text>
+                  </View>
+                </View>
+              )}
             </View>
 
             {!hasAdvancedDashboard ? (
@@ -514,6 +553,67 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: spacing.md,
+  },
+  operationsSection: {
+    gap: spacing.md,
+  },
+  operationsHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  incidentCounter: {
+    minWidth: 36,
+    height: 36,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: spacing.sm,
+    borderRadius: 18,
+    backgroundColor: colors.danger,
+  },
+  incidentCounterHealthy: {
+    backgroundColor: colors.success,
+  },
+  incidentCounterText: {
+    ...typography.bodyMedium,
+    color: colors.background,
+  },
+  incidentCounterHealthyText: {
+    color: colors.background,
+  },
+  incidentList: {
+    gap: spacing.sm,
+  },
+  healthyCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.success,
+    borderRadius: 18,
+    backgroundColor: colors.surface,
+  },
+  healthyIcon: {
+    width: 46,
+    height: 46,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 15,
+    backgroundColor: colors.success,
+  },
+  healthyInformation: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  healthyTitle: {
+    ...typography.bodyMedium,
+    color: colors.text,
+  },
+  healthyDescription: {
+    ...typography.caption,
+    color: colors.textSecondary,
   },
   premiumCard: {
     flexDirection: "row",

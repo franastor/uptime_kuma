@@ -11,3 +11,11 @@
 npx tsc --noEmit
 npm run lint
 ```
+
+## Sprint 10 - Centro de Operaciones
+
+- Añadido un centro de operaciones dentro de la pantalla de monitores.
+- Priorización de incidencias críticas y comprobaciones pendientes.
+- Tarjetas de incidencia con mensaje, antigüedad y ping.
+- Estado saludable cuando no existen incidencias activas.
+- Protección adicional frente a promesas rechazadas durante la confirmación 2FA.
