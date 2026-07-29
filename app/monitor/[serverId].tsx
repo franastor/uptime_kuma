@@ -21,6 +21,7 @@ import {
 import { useMonitorPreferencesStore } from "@/src/modules/monitor/store/monitorPreferences.store";
 import { useMonitorStore } from "@/src/modules/monitor/store/monitor.store";
 import type { Monitor } from "@/src/modules/monitor/types/monitor";
+import { formatHeartbeatDate } from "@/src/modules/monitor/utils/monitorPresentation";
 import { useServerStore } from "@/src/modules/servers/store/server.store";
 import { useSubscriptionStore } from "@/src/modules/subscription/store/subscription.store";
 import {
@@ -115,6 +116,11 @@ export default function MonitorsScreen() {
   const error = useMonitorStore((state) =>
     serverId ? state.errorByServer[serverId] ?? null : null,
   );
+  const lastUpdatedAt = useMonitorStore((state) =>
+    serverId
+      ? state.lastUpdatedByServer[serverId] ?? null
+      : null,
+  );
   const plan = useSubscriptionStore((state) => state.plan);
   const hydratePreferences = useMonitorPreferencesStore(
     (state) => state.hydrate,
@@ -157,6 +163,15 @@ export default function MonitorsScreen() {
   );
   const summary = calculateDashboardSummary(monitors);
   const activeIncidents = useMemo(() => getActiveIncidents(monitors), [monitors]);
+  const connected =
+    server?.connectionStatus === "connected";
+  const summaryDescription = connected
+    ? "Estado en tiempo real de esta instancia."
+    : lastUpdatedAt
+      ? `Datos guardados · ${formatHeartbeatDate(
+          new Date(lastUpdatedAt).toISOString(),
+        ).toLocaleLowerCase("es-ES")}`
+      : "Esperando datos de esta instancia.";
   const hasAdvancedDashboard = canUseFeature(
     plan,
     "advanced-dashboard",
@@ -248,23 +263,48 @@ export default function MonitorsScreen() {
             </Text>
           </View>
 
-          <View style={styles.connectionBadge}>
-            <View
-              style={[
-                styles.connectionDot,
-                {
-                  backgroundColor:
-                    server.connectionStatus === "connected"
-                      ? colors.success
-                      : colors.warning,
-                },
+          <View style={styles.headerActions}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Timeline del servidor"
+              onPress={() =>
+                router.push({
+                  pathname: "/timeline",
+                  params: {
+                    serverId,
+                  },
+                })
+              }
+              style={({ pressed }) => [
+                styles.timelineButton,
+                pressed ? styles.timelineButtonPressed : null,
               ]}
-            />
-            <Text style={styles.connectionText}>
-              {server.connectionStatus === "connected"
-                ? "En directo"
-                : "Datos guardados"}
-            </Text>
+            >
+              <MaterialIcons
+                name="timeline"
+                size={22}
+                color={colors.primary}
+              />
+            </Pressable>
+
+            <View style={styles.connectionBadge}>
+              <View
+                style={[
+                  styles.connectionDot,
+                  {
+                    backgroundColor:
+                      server.connectionStatus === "connected"
+                        ? colors.success
+                        : colors.warning,
+                  },
+                ]}
+              />
+              <Text style={styles.connectionText}>
+                {server.connectionStatus === "connected"
+                  ? "En directo"
+                  : "Datos guardados"}
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -303,7 +343,7 @@ export default function MonitorsScreen() {
               <View style={styles.dashboardTitleContainer}>
                 <Text style={styles.sectionTitle}>Resumen</Text>
                 <Text style={styles.sectionDescription}>
-                  Estado en tiempo real de esta instancia.
+                  {summaryDescription}
                 </Text>
               </View>
 
@@ -428,6 +468,18 @@ export default function MonitorsScreen() {
                       <IncidentCard
                         key={incident.monitor.id}
                         incident={incident}
+                        onPress={() =>
+                          router.push({
+                            pathname:
+                              "/monitor/[serverId]/[monitorId]",
+                            params: {
+                              serverId,
+                              monitorId: String(
+                                incident.monitor.id,
+                              ),
+                            },
+                          })
+                        }
                       />
                     ))}
                   </View>
@@ -515,6 +567,18 @@ export default function MonitorsScreen() {
                     onToggleFavorite={() =>
                       void handleToggleFavorite(monitor.id)
                     }
+                    onPress={() =>
+                      router.push({
+                        pathname:
+                          "/monitor/[serverId]/[monitorId]",
+                        params: {
+                          serverId,
+                          monitorId: String(
+                            monitor.id,
+                          ),
+                        },
+                      })
+                    }
                   />
                 ))}
               </View>
@@ -555,6 +619,24 @@ const styles = StyleSheet.create({
   headerInformation: {
     flex: 1,
     gap: spacing.xs,
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  timelineButton: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  timelineButtonPressed: {
+    opacity: 0.75,
   },
   title: {
     ...typography.heading,

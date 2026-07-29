@@ -6,7 +6,11 @@ import {
   useState,
 } from "react";
 
+import { useMonitorStore } from "@/src/modules/monitor/store/monitor.store";
+import { useHeartbeatHistoryStore } from "@/src/modules/monitor/store/heartbeatHistory.store";
+import { useMonitorStatsStore } from "@/src/modules/monitor/store/monitorStats.store";
 import { useSubscriptionStore } from "@/src/modules/subscription/store/subscription.store";
+import { useTimelineStore } from "@/src/modules/timeline/store/timeline.store";
 import {
   notificationService,
   type NotificationDeepLinkData,
@@ -18,7 +22,8 @@ function navigateFromNotification(
   data: NotificationDeepLinkData,
 ): void {
   router.push({
-    pathname: "/monitor/[serverId]",
+    pathname:
+      "/monitor/[serverId]/[monitorId]",
     params: {
       serverId: data.serverId,
       monitorId: String(data.monitorId),
@@ -41,6 +46,17 @@ export default function RootLayout() {
   useEffect(() => {
     void hydrateSubscription();
   }, [hydrateSubscription]);
+
+  useEffect(() => {
+    void useTimelineStore.getState().hydrate();
+    void useMonitorStore.getState().hydrate();
+    void useHeartbeatHistoryStore
+      .getState()
+      .hydrate();
+    void useMonitorStatsStore
+      .getState()
+      .hydrate();
+  }, []);
 
   useEffect(() => {
     void notificationService

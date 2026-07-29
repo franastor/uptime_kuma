@@ -55,16 +55,87 @@ function normalizeTags(
     );
 }
 
+/**
+ * Uptime Kuma envía `active` como booleano o como 0/1 según la versión.
+ */
+function isMonitorActive(
+  value: KumaMonitor["active"],
+): boolean {
+  if (value === undefined || value === null) {
+    return true;
+  }
+
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "number") {
+    return value !== 0;
+  }
+
+  return value !== "0" && value.toLowerCase() !== "false";
+}
+
+function isKumaMonitorLike(
+  value: unknown,
+): value is KumaMonitor {
+  if (
+    typeof value !== "object" ||
+    value === null
+  ) {
+    return false;
+  }
+
+  const candidate = value as Record<
+    string,
+    unknown
+  >;
+
+  return (
+    Number.isFinite(Number(candidate.id)) &&
+    typeof candidate.name === "string"
+  );
+}
+
+/**
+ * `monitorList` llega como diccionario por id y `updateMonitorIntoList`
+ * puede llegar como diccionario o como monitor suelto según la versión.
+ */
+export function normalizeMonitorList(
+  payload: unknown,
+): Monitor[] {
+  if (Array.isArray(payload)) {
+    return payload
+      .filter(isKumaMonitorLike)
+      .map(normalizeMonitor);
+  }
+
+  if (isKumaMonitorLike(payload)) {
+    return [normalizeMonitor(payload)];
+  }
+
+  if (
+    typeof payload !== "object" ||
+    payload === null
+  ) {
+    return [];
+  }
+
+  return Object.values(payload)
+    .filter(isKumaMonitorLike)
+    .map(normalizeMonitor);
+}
+
 export function normalizeMonitor(
   monitor: KumaMonitor,
 ): Monitor {
   return {
-    id: monitor.id,
+    id: Number(monitor.id),
     name: monitor.name,
     type: monitor.type,
     target: getMonitorTarget(monitor),
     interval: monitor.interval ?? null,
-    active: monitor.active ?? true,
+    active: isMonitorActive(monitor.active),
     description: monitor.description ?? null,
     tags: normalizeTags(monitor.tags),
     status: "unknown",

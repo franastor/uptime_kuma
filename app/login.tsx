@@ -26,6 +26,8 @@ import { kumaService } from "@/src/core/services/KumaService";
 import { getServerCredentials } from "@/src/core/storage/serverStorage";
 
 import { useMonitorStore } from "@/src/modules/monitor/store/monitor.store";
+import { useHeartbeatHistoryStore } from "@/src/modules/monitor/store/heartbeatHistory.store";
+import { useMonitorStatsStore } from "@/src/modules/monitor/store/monitorStats.store";
 
 import { useServerStore } from "@/src/modules/servers/store/server.store";
 
@@ -330,6 +332,12 @@ export default function AddServerScreen() {
           .clearServer(
             serverId,
           );
+        useHeartbeatHistoryStore
+          .getState()
+          .clearServer(serverId);
+        useMonitorStatsStore
+          .getState()
+          .clearServer(serverId);
 
         await updateServer({
           serverId,

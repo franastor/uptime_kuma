@@ -28,7 +28,7 @@ export interface KumaMonitor {
   hostname?: string;
   port?: number;
   interval?: number;
-  active?: boolean;
+  active?: boolean | number | string;
   description?: string;
   tags?: KumaMonitorTag[];
 }

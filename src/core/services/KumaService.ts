@@ -20,12 +20,25 @@ import type {
 } from "@/src/modules/servers/types/server";
 
 import { useMonitorStore } from "@/src/modules/monitor/store/monitor.store";
+import { useHeartbeatHistoryStore } from "@/src/modules/monitor/store/heartbeatHistory.store";
+import { useMonitorStatsStore } from "@/src/modules/monitor/store/monitorStats.store";
 
 import type {
   MonitorStatus,
 } from "@/src/modules/monitor/types/monitor";
 
-import { normalizeMonitor } from "@/src/modules/monitor/utils/normalizeMonitor";
+import { normalizeMonitorList } from "@/src/modules/monitor/utils/normalizeMonitor";
+import {
+  normalizeKumaHeartbeat,
+  normalizeKumaHeartbeatList,
+} from "@/src/modules/monitor/utils/normalizeHeartbeat";
+import { createHeartbeatRecord } from "@/src/modules/monitor/utils/createHeartbeatRecord";
+
+import {
+  createTimelineEventFromHeartbeat,
+  createTimelineEventsFromMonitorHeartbeats,
+  useTimelineStore,
+} from "@/src/modules/timeline";
 
 import { notificationManager } from "@/src/notifications";
 
@@ -107,6 +120,47 @@ function normalizeDeletedMonitorId(
     : null;
 }
 
+function normalizeCertificateInfo(
+  payload: unknown,
+): {
+  certificateDaysRemaining: number | null;
+  certificateValid: boolean | null;
+} {
+  if (
+    typeof payload !== "object" ||
+    payload === null
+  ) {
+    return {
+      certificateDaysRemaining: null,
+      certificateValid: null,
+    };
+  }
+
+  const candidate = payload as {
+    valid?: unknown;
+    certInfo?: {
+      daysRemaining?: unknown;
+    };
+  };
+  const rawDays =
+    candidate.certInfo?.daysRemaining;
+  const days =
+    typeof rawDays === "number"
+      ? rawDays
+      : typeof rawDays === "string"
+        ? Number(rawDays)
+        : NaN;
+
+  return {
+    certificateDaysRemaining:
+      Number.isFinite(days) ? days : null,
+    certificateValid:
+      typeof candidate.valid === "boolean"
+        ? candidate.valid
+        : null,
+  };
+}
+
 class KumaService {
   private readonly connections = new Map<
     string,
@@ -168,9 +222,8 @@ class KumaService {
 
     socket.setMonitorListListener(
       (monitorList) => {
-        const monitors = Object
-          .values(monitorList)
-          .map(normalizeMonitor);
+        const monitors =
+          normalizeMonitorList(monitorList);
 
         useMonitorStore
           .getState()
@@ -187,9 +240,8 @@ class KumaService {
 
     socket.setMonitorUpdateListener(
       (monitorList) => {
-        const monitors = Object
-          .values(monitorList)
-          .map(normalizeMonitor);
+        const monitors =
+          normalizeMonitorList(monitorList);
 
         const monitorStore =
           useMonitorStore.getState();
@@ -240,7 +292,28 @@ class KumaService {
     );
 
     socket.setHeartbeatListener(
-      (heartbeat) => {
+      (rawHeartbeat) => {
+        const heartbeat =
+          normalizeKumaHeartbeat(
+            rawHeartbeat,
+          );
+
+        if (!heartbeat) {
+          return;
+        }
+
+        const heartbeatRecord =
+          createHeartbeatRecord(
+            serverId,
+            heartbeat,
+          );
+
+        if (heartbeatRecord) {
+          useHeartbeatHistoryStore
+            .getState()
+            .append([heartbeatRecord]);
+        }
+
         useMonitorStore
           .getState()
           .updateHeartbeat(
@@ -284,6 +357,26 @@ class KumaService {
           return;
         }
 
+        const timelineEvent =
+          createTimelineEventFromHeartbeat(
+            heartbeat,
+            {
+              serverId,
+              serverName: server.name,
+              monitorName: monitor.name,
+              previousStatus:
+                monitor.previousStatus,
+            },
+          );
+
+        if (timelineEvent) {
+          void useTimelineStore
+            .getState()
+            .appendEvents([
+              timelineEvent,
+            ]);
+        }
+
         void notificationManager.handleStatusChange(
           {
             serverId,
@@ -294,6 +387,87 @@ class KumaService {
               heartbeat.important,
           },
         );
+      },
+    );
+
+    socket.setHeartbeatListListener(
+      (monitorId, heartbeats, _overwrite) => {
+        this.ingestMonitorHeartbeatHistory(
+          serverId,
+          server.name,
+          monitorId,
+          heartbeats,
+          {
+            updateMonitorState: true,
+            onlyImportant: true,
+          },
+        );
+      },
+    );
+
+    socket.setImportantHeartbeatListListener(
+      (monitorId, heartbeats, _overwrite) => {
+        this.ingestMonitorHeartbeatHistory(
+          serverId,
+          server.name,
+          monitorId,
+          heartbeats,
+          {
+            updateMonitorState: false,
+            onlyImportant: false,
+          },
+        );
+      },
+    );
+
+    socket.setAveragePingListener(
+      (monitorId, averagePing) => {
+        useMonitorStatsStore
+          .getState()
+          .update(serverId, monitorId, {
+            averagePing24h:
+              typeof averagePing === "number" &&
+              Number.isFinite(averagePing)
+                ? averagePing
+                : null,
+          });
+      },
+    );
+
+    socket.setUptimeListener(
+      (monitorId, period, uptime) => {
+        if (
+          !Number.isFinite(uptime) ||
+          (period !== 24 &&
+            period !== 720 &&
+            period !== "24" &&
+            period !== "720")
+        ) {
+          return;
+        }
+
+        useMonitorStatsStore
+          .getState()
+          .update(serverId, monitorId, {
+            ...(period === 24 ||
+            period === "24"
+              ? { uptime24h: uptime }
+              : { uptime30d: uptime }),
+          });
+      },
+    );
+
+    socket.setCertificateInfoListener(
+      (monitorId, certificateInfo) => {
+        useMonitorStatsStore
+          .getState()
+          .update(
+            serverId,
+            monitorId,
+            normalizeCertificateInfo(
+              certificateInfo,
+            ),
+          );
       },
     );
 
@@ -509,6 +683,198 @@ class KumaService {
         .get(serverId)
         ?.connected ?? false
     );
+  }
+
+  async refreshTimelineHistory(
+    serverId: string,
+    monitorId: number | null = null,
+    count = 50,
+  ): Promise<number> {
+    const socket =
+      this.connections.get(serverId);
+
+    if (!socket?.connected) {
+      return 0;
+    }
+
+    const server = useServerStore
+      .getState()
+      .servers.find(
+        (item) => item.id === serverId,
+      );
+
+    if (!server) {
+      return 0;
+    }
+
+    try {
+      const heartbeats =
+        await socket.fetchImportantHeartbeatListPaged(
+          monitorId,
+          0,
+          count,
+        );
+
+      if (monitorId !== null) {
+        this.ingestMonitorHeartbeatHistory(
+          serverId,
+          server.name,
+          monitorId,
+          heartbeats,
+          {
+            updateMonitorState: false,
+            onlyImportant: false,
+          },
+        );
+
+        return heartbeats.length;
+      }
+
+      const byMonitor = new Map<
+        number,
+        typeof heartbeats
+      >();
+
+      for (const raw of heartbeats) {
+        const heartbeat =
+          normalizeKumaHeartbeat(raw);
+
+        if (!heartbeat) {
+          continue;
+        }
+
+        const current =
+          byMonitor.get(
+            heartbeat.monitorID,
+          ) ?? [];
+
+        current.push(heartbeat);
+        byMonitor.set(
+          heartbeat.monitorID,
+          current,
+        );
+      }
+
+      for (const [
+        id,
+        list,
+      ] of byMonitor.entries()) {
+        this.ingestMonitorHeartbeatHistory(
+          serverId,
+          server.name,
+          id,
+          list,
+          {
+            updateMonitorState: false,
+            onlyImportant: false,
+          },
+        );
+      }
+
+      return heartbeats.length;
+    } catch (error) {
+      console.warn(
+        "No se pudo refrescar el timeline:",
+        error,
+      );
+      return 0;
+    }
+  }
+
+  private ingestMonitorHeartbeatHistory(
+    serverId: string,
+    serverName: string,
+    monitorId: number,
+    rawHeartbeats: unknown,
+    options: {
+      updateMonitorState: boolean;
+      onlyImportant: boolean;
+    },
+  ): void {
+    const heartbeats =
+      normalizeKumaHeartbeatList(
+        rawHeartbeats,
+        monitorId,
+      );
+
+    if (heartbeats.length === 0) {
+      return;
+    }
+
+    const heartbeatRecords = heartbeats
+      .map((heartbeat) =>
+        createHeartbeatRecord(
+          serverId,
+          heartbeat,
+        ),
+      )
+      .filter(
+        (
+          record,
+        ): record is NonNullable<
+          typeof record
+        > => record !== null,
+      );
+
+    useHeartbeatHistoryStore
+      .getState()
+      .append(heartbeatRecords);
+
+    const monitors =
+      useMonitorStore.getState()
+        .monitorsByServer[serverId] ??
+      [];
+
+    const monitor = monitors.find(
+      (item) => item.id === monitorId,
+    );
+
+    const monitorName =
+      monitor?.name ??
+      `Monitor ${monitorId}`;
+
+    if (options.updateMonitorState) {
+      const latest =
+        heartbeats[heartbeats.length - 1];
+
+      if (latest) {
+        useMonitorStore
+          .getState()
+          .updateHeartbeat(serverId, {
+            monitorId,
+            status:
+              normalizeHeartbeatStatus(
+                latest.status,
+              ),
+            ping: latest.ping,
+            message: latest.msg,
+            heartbeatAt: latest.time,
+            retries: latest.retries,
+            important: latest.important,
+          });
+      }
+    }
+
+    const events =
+      createTimelineEventsFromMonitorHeartbeats(
+        monitorId,
+        heartbeats,
+        {
+          serverId,
+          serverName,
+          monitorName,
+        },
+        {
+          onlyImportant:
+            options.onlyImportant,
+        },
+      );
+
+    if (events.length > 0) {
+      void useTimelineStore
+        .getState()
+        .appendEvents(events);
+    }
   }
 
   private getConnectionStatus(

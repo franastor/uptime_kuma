@@ -1,5 +1,48 @@
 # Changelog
 
+## v0.7.3 — Disponibilidad por tramos
+
+- La cuadrícula de disponibilidad ya no dibuja un bloque por heartbeat, sino tramos de tiempo, de modo que una caída de hace horas sigue siendo visible.
+- Selector de ventana de 24 h y 7 días.
+- Los tramos se reconstruyen combinando los heartbeats recientes con los cambios de estado del histórico, que cubren mucho más tiempo.
+- Los tramos sin datos se muestran en gris en lugar de darse por operativos.
+
+## v0.7.2 — Corrección de fechas de heartbeats
+
+- Las marcas de tiempo de Uptime Kuma se interpretan como UTC y en un formato que Hermes sí parsea, así que la cuadrícula de disponibilidad ya refleja las caídas reales.
+- El timeline y los tiempos relativos («hace X») dejan de desplazarse según la zona horaria del dispositivo.
+- La cuadrícula indica el número de checks y el rango temporal que abarca.
+- Se descarta la caché anterior de heartbeats y timeline, que guardaba fechas incorrectas.
+
+## v0.7.1 — Caché de monitores y monitores pausados
+
+- Nueva pantalla de detalle por monitor con estado actual, respuesta, uptime de la ventana local, incidencias, timeline, heartbeats e historial.
+- Estadísticas oficiales de Uptime Kuma en el detalle: ping medio de 24 h, uptime de 24 h y 30 días, downtime derivado y caducidad SSL.
+- Cuadrícula visual de disponibilidad con los checks recientes en verde, rojo, amarillo o mantenimiento.
+- Caché persistente de estadísticas por monitor para mostrarlas sin esperar al socket.
+- Timeline vertical UP/DOWN en el detalle y en el historial específico de cada monitor.
+- Mini-caché persistente de hasta 100 heartbeats por monitor.
+- Las tarjetas de monitor, los eventos y las notificaciones abren directamente el detalle.
+- Mini-caché persistente de la lista de monitores por servidor: el resumen y el centro de operaciones se pintan al instante al entrar y se refrescan en segundo plano.
+- Escritura agrupada (1,5 s) para no castigar el almacenamiento con cada heartbeat.
+- El resumen indica «Datos guardados · hace X» mientras no hay conexión en directo.
+- La caché se borra al eliminar o editar un servidor.
+- Los monitores pausados ya no aparecen como incidencia «pendiente» en el centro de operaciones.
+- El contador de incidencias activas y la lista muestran ahora exactamente los mismos monitores.
+- `active` se interpreta bien aunque Uptime Kuma lo envíe como `0`/`1` o texto.
+- `updateMonitorIntoList` se acepta tanto en formato diccionario como monitor suelto.
+- Sin notificaciones para monitores pausados.
+
+## v0.7.0 — Sprint 12: Timeline
+
+- Timeline global de cambios de estado importantes.
+- Timeline por servidor y por monitor.
+- Ingesta en vivo desde heartbeats `important`, `heartbeatList` y `importantHeartbeatList`.
+- Persistencia local (AsyncStorage, máx. 500 eventos) como mini-caché: al entrar se muestra al instante y se refresca en segundo plano.
+- Búsqueda y filtros por estado (UP/DOWN/pending/maintenance).
+- Acceso desde la lista de servidores, el dashboard del servidor y cada monitor.
+- Al conectar, el último heartbeat de cada monitor actualiza el estado operativo sin esperar al siguiente check.
+
 ## v0.6.3 — Sprint 11C (parcial): Notification Preferences
 
 - Preferencias de notificaciones locales: activar/desactivar, sonido y vibración.

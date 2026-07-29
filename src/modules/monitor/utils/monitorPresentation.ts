@@ -5,6 +5,7 @@ import type {
   Monitor,
   MonitorStatus,
 } from "@/src/modules/monitor/types/monitor";
+import { parseKumaTimestamp } from "@/src/modules/monitor/utils/parseKumaTimestamp";
 import { colors } from "@/src/shared/theme";
 
 export type MaterialIconName = ComponentProps<
@@ -119,12 +120,9 @@ export function formatHeartbeatDate(
     return "Sin comprobaciones";
   }
 
-  const normalized = value.includes("T")
-    ? value
-    : value.replace(" ", "T");
-  const timestamp = new Date(normalized).getTime();
+  const timestamp = parseKumaTimestamp(value);
 
-  if (Number.isNaN(timestamp)) {
+  if (timestamp === null) {
     return "Fecha desconocida";
   }
 

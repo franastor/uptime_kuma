@@ -19,7 +19,6 @@ import {
   KumaTwoFactorRequiredError,
 } from "@/src/core/socket/kumaSocket.types";
 
-import { useMonitorStore } from "@/src/modules/monitor/store/monitor.store";
 import { useServerStore } from "@/src/modules/servers/store/server.store";
 
 import type {
@@ -508,12 +507,6 @@ export default function ServersScreen() {
         serverId,
       );
 
-      useMonitorStore
-        .getState()
-        .clearServer(
-          serverId,
-        );
-
       await useServerStore
         .getState()
         .deleteServer(
@@ -593,6 +586,26 @@ export default function ServersScreen() {
               de Uptime Kuma.
             </Text>
           </View>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Timeline de actividad"
+            onPress={() =>
+              router.push("/timeline")
+            }
+            style={({ pressed }) => [
+              styles.settingsButton,
+              pressed
+                ? styles.settingsButtonPressed
+                : null,
+            ]}
+          >
+            <MaterialIcons
+              name="timeline"
+              size={22}
+              color={colors.primary}
+            />
+          </Pressable>
 
           <Pressable
             accessibilityRole="button"

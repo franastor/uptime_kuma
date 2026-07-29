@@ -31,5 +31,5 @@ export function buildMonitorDeepLink(
   serverId: string,
   monitorId: number,
 ): string {
-  return `kumapulse://monitor/${serverId}?monitorId=${monitorId}`;
+  return `kumapulse://monitor/${serverId}/${monitorId}`;
 }

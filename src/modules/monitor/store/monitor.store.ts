@@ -1,9 +1,17 @@
 import { create } from "zustand";
 
+import {
+  clearMonitorCache,
+  loadMonitorCache,
+  saveMonitorCache,
+  type MonitorCache,
+} from "@/src/modules/monitor/store/monitorCache";
+
 import type {
   Monitor,
   MonitorStatus,
 } from "@/src/modules/monitor/types/monitor";
+import { parseKumaTimestamp } from "@/src/modules/monitor/utils/parseKumaTimestamp";
 
 interface UpdateMonitorHeartbeatInput {
   monitorId: number;
@@ -20,6 +28,10 @@ interface MonitorState {
   monitorsByServer: Record<string, Monitor[]>;
   loadingByServer: Record<string, boolean>;
   errorByServer: Record<string, string | null>;
+  lastUpdatedByServer: Record<string, number>;
+  hydrated: boolean;
+
+  hydrate: () => Promise<void>;
 
   setMonitors: (
     serverId: string,
@@ -59,21 +71,7 @@ interface MonitorState {
 function parseHeartbeatDate(
   value: string | null | undefined,
 ): number | null {
-  if (!value) {
-    return null;
-  }
-
-  const normalizedValue = value.includes("T")
-    ? value
-    : value.replace(" ", "T");
-
-  const timestamp = new Date(
-    normalizedValue,
-  ).getTime();
-
-  return Number.isNaN(timestamp)
-    ? null
-    : timestamp;
+  return parseKumaTimestamp(value);
 }
 
 function calculateDuration(
@@ -145,11 +143,100 @@ function mergeMonitorRealtimeData(
   };
 }
 
+/**
+ * Los heartbeats llegan en ráfagas, así que la caché se escribe agrupada
+ * en lugar de una vez por evento.
+ */
+const PERSIST_DEBOUNCE_MS = 1_500;
+
+let persistTimeoutId: ReturnType<
+  typeof setTimeout
+> | null = null;
+
+function persistNow(): void {
+  const {
+    monitorsByServer,
+    lastUpdatedByServer,
+  } = useMonitorStore.getState();
+
+  const cache: MonitorCache = {};
+
+  for (const [
+    serverId,
+    monitors,
+  ] of Object.entries(monitorsByServer)) {
+    cache[serverId] = {
+      monitors,
+      updatedAt:
+        lastUpdatedByServer[serverId] ??
+        Date.now(),
+    };
+  }
+
+  void saveMonitorCache(cache);
+}
+
+function schedulePersist(): void {
+  if (persistTimeoutId !== null) {
+    return;
+  }
+
+  persistTimeoutId = setTimeout(() => {
+    persistTimeoutId = null;
+    persistNow();
+  }, PERSIST_DEBOUNCE_MS);
+}
+
 export const useMonitorStore =
-  create<MonitorState>((set) => ({
+  create<MonitorState>((set, get) => ({
     monitorsByServer: {},
     loadingByServer: {},
     errorByServer: {},
+    lastUpdatedByServer: {},
+    hydrated: false,
+
+    hydrate: async () => {
+      if (get().hydrated) {
+        return;
+      }
+
+      const cache = await loadMonitorCache();
+
+      set((state) => {
+        const monitorsByServer = {
+          ...state.monitorsByServer,
+        };
+
+        const lastUpdatedByServer = {
+          ...state.lastUpdatedByServer,
+        };
+
+        for (const [
+          serverId,
+          entry,
+        ] of Object.entries(cache)) {
+          const alreadyLive =
+            (monitorsByServer[serverId]
+              ?.length ?? 0) > 0;
+
+          if (alreadyLive) {
+            continue;
+          }
+
+          monitorsByServer[serverId] =
+            entry.monitors;
+
+          lastUpdatedByServer[serverId] =
+            entry.updatedAt;
+        }
+
+        return {
+          monitorsByServer,
+          lastUpdatedByServer,
+          hydrated: true,
+        };
+      });
+    },
 
     setMonitors: (
       serverId,
@@ -204,8 +291,15 @@ export const useMonitorStore =
             ...state.errorByServer,
             [serverId]: null,
           },
+
+          lastUpdatedByServer: {
+            ...state.lastUpdatedByServer,
+            [serverId]: Date.now(),
+          },
         };
       });
+
+      schedulePersist();
     },
 
     updateMonitor: (
@@ -237,6 +331,11 @@ export const useMonitorStore =
                 monitor,
               ],
             },
+
+            lastUpdatedByServer: {
+              ...state.lastUpdatedByServer,
+              [serverId]: Date.now(),
+            },
           };
         }
 
@@ -262,8 +361,15 @@ export const useMonitorStore =
             [serverId]:
               updatedMonitors,
           },
+
+          lastUpdatedByServer: {
+            ...state.lastUpdatedByServer,
+            [serverId]: Date.now(),
+          },
         };
       });
+
+      schedulePersist();
     },
 
     removeMonitor: (
@@ -290,8 +396,15 @@ export const useMonitorStore =
                   monitorId,
               ),
           },
+
+          lastUpdatedByServer: {
+            ...state.lastUpdatedByServer,
+            [serverId]: Date.now(),
+          },
         };
       });
+
+      schedulePersist();
     },
 
     setLoading: (
@@ -423,8 +536,15 @@ export const useMonitorStore =
             [serverId]:
               updatedMonitors,
           },
+
+          lastUpdatedByServer: {
+            ...state.lastUpdatedByServer,
+            [serverId]: Date.now(),
+          },
         };
       });
+
+      schedulePersist();
     },
 
     clearServer: (
@@ -443,6 +563,10 @@ export const useMonitorStore =
           ...state.errorByServer,
         };
 
+        const lastUpdatedByServer = {
+          ...state.lastUpdatedByServer,
+        };
+
         delete monitorsByServer[
           serverId
         ];
@@ -455,19 +579,34 @@ export const useMonitorStore =
           serverId
         ];
 
+        delete lastUpdatedByServer[
+          serverId
+        ];
+
         return {
           monitorsByServer,
           loadingByServer,
           errorByServer,
+          lastUpdatedByServer,
         };
       });
+
+      schedulePersist();
     },
 
     clearAll: () => {
+      if (persistTimeoutId !== null) {
+        clearTimeout(persistTimeoutId);
+        persistTimeoutId = null;
+      }
+
       set({
         monitorsByServer: {},
         loadingByServer: {},
         errorByServer: {},
+        lastUpdatedByServer: {},
       });
+
+      void clearMonitorCache();
     },
   }));

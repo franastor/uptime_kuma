@@ -10,6 +10,11 @@ import {
   saveStoredServers,
 } from "@/src/core/storage/serverStorage";
 
+import { useMonitorStore } from "@/src/modules/monitor/store/monitor.store";
+import { useHeartbeatHistoryStore } from "@/src/modules/monitor/store/heartbeatHistory.store";
+import { useMonitorStatsStore } from "@/src/modules/monitor/store/monitorStats.store";
+import { useTimelineStore } from "@/src/modules/timeline/store/timeline.store";
+
 import type {
   CreateKumaServerInput,
   KumaServer,
@@ -327,10 +332,24 @@ export const useServerStore =
           serverId,
         ),
 
+        useTimelineStore
+          .getState()
+          .clearServer(serverId),
+
         saveActiveServerId(
           nextActiveServerId,
         ),
       ]);
+
+      useMonitorStore
+        .getState()
+        .clearServer(serverId);
+      useHeartbeatHistoryStore
+        .getState()
+        .clearServer(serverId);
+      useMonitorStatsStore
+        .getState()
+        .clearServer(serverId);
 
       set({
         servers: updatedServers,

@@ -45,11 +45,11 @@ export type KumaMonitorList =
   Record<string, KumaMonitor>;
 
 type MonitorListListener = (
-  monitors: KumaMonitorList,
+  monitors: unknown,
 ) => void;
 
 type MonitorUpdateListener = (
-  monitors: KumaMonitorList,
+  monitors: unknown,
 ) => void;
 
 type MonitorDeleteListener = (
@@ -58,6 +58,28 @@ type MonitorDeleteListener = (
 
 type HeartbeatListener = (
   heartbeat: KumaHeartbeat,
+) => void;
+
+type MonitorHeartbeatListListener = (
+  monitorId: number,
+  heartbeats: KumaHeartbeat[],
+  overwrite: boolean,
+) => void;
+
+type AveragePingListener = (
+  monitorId: number,
+  averagePing: number | null,
+) => void;
+
+type UptimeListener = (
+  monitorId: number,
+  period: number | string,
+  uptime: number,
+) => void;
+
+type CertificateInfoListener = (
+  monitorId: number,
+  certificateInfo: unknown,
 ) => void;
 
 const DEFAULT_CONNECTION_TIMEOUT =
@@ -108,6 +130,26 @@ export class KumaSocket {
 
   private heartbeatListener:
     | HeartbeatListener
+    | null = null;
+
+  private heartbeatListListener:
+    | MonitorHeartbeatListListener
+    | null = null;
+
+  private importantHeartbeatListListener:
+    | MonitorHeartbeatListListener
+    | null = null;
+
+  private averagePingListener:
+    | AveragePingListener
+    | null = null;
+
+  private uptimeListener:
+    | UptimeListener
+    | null = null;
+
+  private certificateInfoListener:
+    | CertificateInfoListener
     | null = null;
 
   get connected(): boolean {
@@ -204,6 +246,47 @@ export class KumaSocket {
       | null,
   ): void {
     this.heartbeatListener =
+      listener;
+  }
+
+  setHeartbeatListListener(
+    listener:
+      | MonitorHeartbeatListListener
+      | null,
+  ): void {
+    this.heartbeatListListener =
+      listener;
+  }
+
+  setImportantHeartbeatListListener(
+    listener:
+      | MonitorHeartbeatListListener
+      | null,
+  ): void {
+    this.importantHeartbeatListListener =
+      listener;
+  }
+
+  setAveragePingListener(
+    listener:
+      | AveragePingListener
+      | null,
+  ): void {
+    this.averagePingListener = listener;
+  }
+
+  setUptimeListener(
+    listener: UptimeListener | null,
+  ): void {
+    this.uptimeListener = listener;
+  }
+
+  setCertificateInfoListener(
+    listener:
+      | CertificateInfoListener
+      | null,
+  ): void {
+    this.certificateInfoListener =
       listener;
   }
 
@@ -366,6 +449,59 @@ export class KumaSocket {
     return response;
   }
 
+  async fetchImportantHeartbeatListPaged(
+    monitorId: number | null,
+    offset = 0,
+    count = 50,
+  ): Promise<KumaHeartbeat[]> {
+    const socket =
+      this.getConnectedSocket();
+
+    type PagedResponse = {
+      ok: boolean;
+      msg?: string;
+      data?: unknown;
+    };
+
+    const response =
+      await new Promise<PagedResponse>(
+        (resolve, reject) => {
+          const timeoutId = setTimeout(
+            () => {
+              reject(
+                new KumaConnectionError(
+                  'Uptime Kuma no respondió al evento "monitorImportantHeartbeatListPaged".',
+                ),
+              );
+            },
+            DEFAULT_LOGIN_TIMEOUT,
+          );
+
+          socket.emit(
+            "monitorImportantHeartbeatListPaged",
+            monitorId,
+            offset,
+            count,
+            (result: PagedResponse) => {
+              clearTimeout(timeoutId);
+              resolve(result);
+            },
+          );
+        },
+      );
+
+    if (!response.ok) {
+      throw new KumaAuthenticationError(
+        response.msg ||
+          "No se pudo cargar el histórico de eventos.",
+      );
+    }
+
+    return Array.isArray(response.data)
+      ? (response.data as KumaHeartbeat[])
+      : [];
+  }
+
   disconnect(): void {
     if (!this.socket) {
       return;
@@ -459,15 +595,6 @@ export class KumaSocket {
     socket.on(
       "updateMonitorIntoList",
       (payload) => {
-        console.log(
-          "UPDATE MONITOR",
-          JSON.stringify(
-            payload,
-            null,
-            2,
-          ),
-        );
-    
         this.monitorUpdateListener?.(
           payload,
         );
@@ -493,6 +620,88 @@ export class KumaSocket {
       ) => {
         this.heartbeatListener?.(
           heartbeat,
+        );
+      },
+    );
+
+    socket.on(
+      "heartbeatList",
+      (
+        monitorId: number,
+        heartbeats: KumaHeartbeat[],
+        overwrite = false,
+      ) => {
+        this.heartbeatListListener?.(
+          monitorId,
+          heartbeats,
+          overwrite,
+        );
+      },
+    );
+
+    socket.on(
+      "importantHeartbeatList",
+      (
+        monitorId: number,
+        heartbeats: KumaHeartbeat[],
+        overwrite = false,
+      ) => {
+        this.importantHeartbeatListListener?.(
+          monitorId,
+          heartbeats,
+          overwrite,
+        );
+      },
+    );
+
+    socket.on(
+      "avgPing",
+      (
+        monitorId: number,
+        averagePing: number | null,
+      ) => {
+        this.averagePingListener?.(
+          monitorId,
+          averagePing,
+        );
+      },
+    );
+
+    socket.on(
+      "uptime",
+      (
+        monitorId: number,
+        period: number | string,
+        uptime: number,
+      ) => {
+        this.uptimeListener?.(
+          monitorId,
+          period,
+          uptime,
+        );
+      },
+    );
+
+    socket.on(
+      "certInfo",
+      (
+        monitorId: number,
+        data: unknown,
+      ) => {
+        let certificateInfo = data;
+
+        if (typeof data === "string") {
+          try {
+            certificateInfo =
+              JSON.parse(data);
+          } catch {
+            certificateInfo = null;
+          }
+        }
+
+        this.certificateInfoListener?.(
+          monitorId,
+          certificateInfo,
         );
       },
     );

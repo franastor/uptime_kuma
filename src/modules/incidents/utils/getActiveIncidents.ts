@@ -15,13 +15,17 @@ const severityRank = (severity: IncidentSeverity): number => {
 const getIncidentSeverity = (
   monitor: Monitor
 ): IncidentSeverity | null => {
+  if (!monitor.active) {
+    return null;
+  }
+
   if (monitor.status === "down") {
     return "critical";
   }
 
   if (
     monitor.status === "pending" ||
-    monitor.status === "unknown"
+    monitor.status === "maintenance"
   ) {
     return "pending";
   }

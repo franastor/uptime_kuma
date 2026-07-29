@@ -41,6 +41,10 @@ export class NotificationManager {
       return null;
     }
 
+    if (!input.monitor.active) {
+      return null;
+    }
+
     const status = input.monitor.status;
 
     if (
