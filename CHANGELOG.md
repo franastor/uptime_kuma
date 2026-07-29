@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.6.3 — Sprint 11C (parcial): Notification Preferences
+
+- Preferencias de notificaciones locales: activar/desactivar, sonido y vibración.
+- Filtrado por etiquetas (Premium / `advanced-filters`).
+- Pantalla de ajustes accesible desde la lista de servidores.
+- Preparación Premium: el filtro por tags queda bloqueado en Free.
+- Aviso explícito de que los avisos solo funcionan con la app en primer plano.
+
 ## v0.6.2 — Sprint 11B.2: Smart Notifications MVP
 
 - Integración de notificaciones locales con heartbeats Socket.IO (`important` UP/DOWN).

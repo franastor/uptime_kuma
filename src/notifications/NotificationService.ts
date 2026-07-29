@@ -1,7 +1,12 @@
+import * as Haptics from "expo-haptics";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
 import { formatNotificationContent } from "@/src/notifications/NotificationFormatter";
+import {
+  loadNotificationPreferences,
+  type NotificationPreferences,
+} from "@/src/notifications/NotificationPreferences";
 import {
   MONITOR_STATUS_CHANNEL_ID,
   type NotificationDeepLinkData,
@@ -17,13 +22,23 @@ export type NotificationPermissionState =
   | "denied"
   | "undetermined";
 
+export type PresentLocalOptions = Pick<
+  NotificationPreferences,
+  "sound" | "vibration"
+>;
+
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
+  handleNotification: async () => {
+    const preferences =
+      await loadNotificationPreferences();
+
+    return {
+      shouldPlaySound: preferences.sound,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    };
+  },
 });
 
 function parseDeepLinkData(
@@ -165,6 +180,10 @@ export class NotificationService {
 
   async presentLocal(
     payload: NotificationPayload,
+    options: PresentLocalOptions = {
+      sound: true,
+      vibration: true,
+    },
   ): Promise<string | null> {
     if (Platform.OS === "web") {
       return null;
@@ -181,12 +200,25 @@ export class NotificationService {
     const content =
       formatNotificationContent(payload);
 
+    if (options.vibration) {
+      try {
+        await Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType
+            .Warning,
+        );
+      } catch {
+        // Haptics may be unavailable on some devices.
+      }
+    }
+
     return Notifications.scheduleNotificationAsync(
       {
         content: {
           title: content.title,
           body: content.body,
-          sound: "default",
+          sound: options.sound
+            ? "default"
+            : undefined,
           data: {
             serverId: payload.serverId,
             monitorId: payload.monitorId,

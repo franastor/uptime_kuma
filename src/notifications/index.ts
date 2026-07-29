@@ -20,6 +20,7 @@ export {
 export {
   DEFAULT_NOTIFICATION_PREFERENCES,
   loadNotificationPreferences,
+  monitorMatchesTagFilter,
   saveNotificationPreferences,
   type NotificationPreferences,
 } from "@/src/notifications/NotificationPreferences";
@@ -29,6 +30,7 @@ export {
   NotificationService,
   type NotificationPermissionState,
   type NotificationResponseHandler,
+  type PresentLocalOptions,
 } from "@/src/notifications/NotificationService";
 
 export {

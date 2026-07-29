@@ -593,6 +593,28 @@ export default function ServersScreen() {
               de Uptime Kuma.
             </Text>
           </View>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Ajustes de notificaciones"
+            onPress={() =>
+              router.push(
+                "/settings/notifications",
+              )
+            }
+            style={({ pressed }) => [
+              styles.settingsButton,
+              pressed
+                ? styles.settingsButtonPressed
+                : null,
+            ]}
+          >
+            <MaterialIcons
+              name="notifications-active"
+              size={22}
+              color={colors.primary}
+            />
+          </Pressable>
         </View>
 
         {servers.length === 0 ? (
@@ -1079,6 +1101,21 @@ const styles = StyleSheet.create({
   headerText: {
     flex: 1,
     gap: spacing.xs,
+  },
+
+  settingsButton: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+
+  settingsButtonPressed: {
+    opacity: 0.75,
   },
 
   title: {

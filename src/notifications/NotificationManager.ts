@@ -1,6 +1,7 @@
 import { appendNotificationHistory } from "@/src/notifications/NotificationHistoryStore";
 import {
   loadNotificationPreferences,
+  monitorMatchesTagFilter,
 } from "@/src/notifications/NotificationPreferences";
 import { notificationService } from "@/src/notifications/NotificationService";
 import {
@@ -11,6 +12,8 @@ import {
 } from "@/src/notifications/NotificationTypes";
 
 import type { Monitor } from "@/src/modules/monitor/types/monitor";
+import { useSubscriptionStore } from "@/src/modules/subscription/store/subscription.store";
+import { canUseFeature } from "@/src/modules/subscription/utils/feature-access";
 
 export type HandleStatusChangeInput = {
   serverId: string;
@@ -74,6 +77,29 @@ export class NotificationManager {
       return null;
     }
 
+    const plan =
+      useSubscriptionStore.getState().plan;
+    const canFilterByTags = canUseFeature(
+      plan,
+      "advanced-filters",
+    );
+
+    const effectivePreferences = {
+      ...preferences,
+      tagFilterEnabled:
+        preferences.tagFilterEnabled &&
+        canFilterByTags,
+    };
+
+    if (
+      !monitorMatchesTagFilter(
+        input.monitor.tags,
+        effectivePreferences,
+      )
+    ) {
+      return null;
+    }
+
     const type: NotificationType =
       status === "down"
         ? "MONITOR_DOWN"
@@ -108,6 +134,10 @@ export class NotificationManager {
 
     await notificationService.presentLocal(
       payload,
+      {
+        sound: preferences.sound,
+        vibration: preferences.vibration,
+      },
     );
 
     return payload;
