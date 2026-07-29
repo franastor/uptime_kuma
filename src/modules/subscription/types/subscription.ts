@@ -10,7 +10,8 @@ export type PremiumFeature =
   | "unlimited-servers"
   | "unlimited-monitors"
   | "custom-themes"
-  | "data-export";
+  | "data-export"
+  | "server-backup";
 
 export interface SubscriptionState {
   plan: SubscriptionPlan;

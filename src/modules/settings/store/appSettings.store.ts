@@ -28,6 +28,11 @@ type AppSettingsState = AppSettings & {
     value: number,
   ) => void;
   setLocale: (locale: AppLocalePreference) => void;
+  setBiometricUnlockEnabled: (
+    enabled: boolean,
+  ) => void;
+  setLockTimeoutMinutes: (minutes: number) => void;
+  replaceSettings: (settings: AppSettings) => void;
   clearServer: (serverId: string) => void;
 };
 
@@ -72,6 +77,28 @@ function normalizeSlaMap(
   return result;
 }
 
+function normalizeTimeout(value: unknown): number {
+  if (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    value >= 0
+  ) {
+    return Math.round(value);
+  }
+
+  return DEFAULT_APP_SETTINGS.lockTimeoutMinutes;
+}
+
+function snapshot(state: AppSettings): AppSettings {
+  return {
+    slaTargetByServer: state.slaTargetByServer,
+    locale: state.locale,
+    biometricUnlockEnabled:
+      state.biometricUnlockEnabled,
+    lockTimeoutMinutes: state.lockTimeoutMinutes,
+  };
+}
+
 function parseStoredSettings(
   value: unknown,
 ): AppSettings {
@@ -93,6 +120,14 @@ function parseStoredSettings(
         candidate.slaTargetByServer,
       ),
       locale: normalizeLocale(candidate.locale),
+      biometricUnlockEnabled:
+        typeof candidate.biometricUnlockEnabled ===
+        "boolean"
+          ? candidate.biometricUnlockEnabled
+          : DEFAULT_APP_SETTINGS.biometricUnlockEnabled,
+      lockTimeoutMinutes: normalizeTimeout(
+        candidate.lockTimeoutMinutes,
+      ),
     };
   }
 
@@ -107,6 +142,10 @@ function parseStoredSettings(
         ),
       },
       locale: normalizeLocale(candidate.locale),
+      biometricUnlockEnabled:
+        DEFAULT_APP_SETTINGS.biometricUnlockEnabled,
+      lockTimeoutMinutes:
+        DEFAULT_APP_SETTINGS.lockTimeoutMinutes,
     };
   }
 
@@ -188,10 +227,10 @@ export const useAppSettingsStore =
         ...get().slaTargetByServer,
         [serverId]: slaTarget,
       };
-      const next = {
+      const next = snapshot({
+        ...get(),
         slaTargetByServer,
-        locale: get().locale,
-      };
+      });
 
       set({ slaTargetByServer });
       persist(next);
@@ -199,12 +238,38 @@ export const useAppSettingsStore =
 
     setLocale: (locale) => {
       applyLocale(locale);
-      const next = {
-        slaTargetByServer: get().slaTargetByServer,
+      const next = snapshot({
+        ...get(),
         locale,
-      };
+      });
       set({ locale });
       persist(next);
+    },
+
+    setBiometricUnlockEnabled: (enabled) => {
+      const next = snapshot({
+        ...get(),
+        biometricUnlockEnabled: enabled,
+      });
+      set({ biometricUnlockEnabled: enabled });
+      persist(next);
+    },
+
+    setLockTimeoutMinutes: (minutes) => {
+      const lockTimeoutMinutes =
+        normalizeTimeout(minutes);
+      const next = snapshot({
+        ...get(),
+        lockTimeoutMinutes,
+      });
+      set({ lockTimeoutMinutes });
+      persist(next);
+    },
+
+    replaceSettings: (settings) => {
+      applyLocale(settings.locale);
+      set({ ...settings });
+      persist(snapshot(settings));
     },
 
     clearServer: (serverId) => {
@@ -212,10 +277,10 @@ export const useAppSettingsStore =
         ...get().slaTargetByServer,
       };
       delete nextMap[serverId];
-      const next = {
+      const next = snapshot({
+        ...get(),
         slaTargetByServer: nextMap,
-        locale: get().locale,
-      };
+      });
 
       set({ slaTargetByServer: nextMap });
       persist(next);

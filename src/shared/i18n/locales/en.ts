@@ -28,12 +28,110 @@ export const en: TranslationTree = {
     subtitle: "Global app preferences on this device",
     notifications: "Notifications",
     notificationsHint: "Sound, vibration and filters",
+    security: "Security",
+    securityHint: "Master password and biometrics",
+    backup: "Server backup",
+    backupHint: "Export and import · Premium",
     devOnly: "DEV ONLY",
     premiumPlan: "Premium plan",
     premiumPlanHint:
       "Turn it on to try the advanced dashboard. Turn it off to see Free locks.",
     slaHint:
       "SLA targets and other per-instance settings live inside each server.",
+  },
+  vault: {
+    securityTitle: "Security",
+    securitySubtitle:
+      "Protect access to the app on this device with a master password. Biometrics are an optional shortcut.",
+    masterPassword: "Master password",
+    masterPasswordHint:
+      "At least 6 characters. Only a hash is stored on device; there is no cloud recovery.",
+    masterPasswordEnabledHint:
+      "Vault is active. You can lock now or disable it by entering the password.",
+    passwordPlaceholder: "Password",
+    confirmPasswordPlaceholder: "Repeat password",
+    enable: "Enable protection",
+    disable: "Disable",
+    disableTitle: "Disable vault?",
+    disableDescription:
+      "The app will stop asking for a password or biometrics on open. Enter the master password to confirm.",
+    lockNow: "Lock now",
+    unlockTitle: "App locked",
+    unlockSubtitle:
+      "Enter the master password or use biometrics to continue.",
+    unlock: "Unlock",
+    useBiometric: "Use fingerprint / Face ID",
+    biometric: "Biometric unlock",
+    biometricHint:
+      "Use fingerprint or Face ID as a shortcut. If it fails, the master password is required.",
+    biometricPrompt: "Unlock KumaPulse",
+    biometricNeedsVault:
+      "Enable the master password first.",
+    biometricUnavailable:
+      "This device has no biometrics available or enrolled.",
+    lockTimeout: "Auto lock",
+    lockTimeoutHint:
+      "Time in background before unlock is required again.",
+    timeoutImmediate: "On leave",
+    timeoutMinutes: "%{minutes} min",
+    passwordTooShort:
+      "Password must be at least 6 characters.",
+    passwordMismatch: "Passwords do not match.",
+    wrongPassword: "Incorrect password.",
+    enabledSuccess: "Protection enabled.",
+    disabledSuccess: "Protection disabled.",
+    recoveryWarning:
+      "If you forget the master password it cannot be recovered. Export a server backup first.",
+  },
+  backup: {
+    title: "Server backup",
+    subtitle:
+      "Export or import servers with passwords, favorites, SLA and language/notification settings.",
+    subtitlePremium:
+      "Encrypted server backup is part of Premium.",
+    exportTab: "Export",
+    importTab: "Import",
+    passphrase: "File password",
+    passphraseHint:
+      "Encrypts the backup. If the vault was unlocked with a password, you can reuse it by leaving this empty.",
+    passphraseSessionHint:
+      "Leave empty to use this session’s master password.",
+    passphrasePlaceholder: "At least 6 characters",
+    passphraseTooShort:
+      "The file password must be at least 6 characters.",
+    servers: "Servers",
+    selectAll: "Select all",
+    clearSelection: "Clear selection",
+    selectServers: "Select at least one server.",
+    noServers: "No servers configured.",
+    exportIncludes:
+      "Includes URL, username, password, 2FA, favorites, SLA target and, optionally on import, language and notification preferences.",
+    exportAction: "Export encrypted",
+    exportActionPremium: "Export · Premium",
+    exportSaved:
+      "Backup saved to Downloads:\n%{filename}\n(The first time Android asks you to pick a folder; choose Downloads.)",
+    exportFailed: "Could not export the backup.",
+    importTitle: "Import backup",
+    importHint:
+      "Pick an encrypted .kpb file and the same password used to export it.",
+    pickFile: "Choose file",
+    pickFilePremium: "Choose file · Premium",
+    importFound: "%{count} servers in the file",
+    favoritesCount: "%{count} favorites",
+    overwriteDuplicates: "Overwrite duplicates",
+    overwriteDuplicatesHint:
+      "If URL and username already exist, update credentials and settings instead of skipping.",
+    importAppSettings: "Import app settings",
+    importAppSettingsHint:
+      "Language and notification preferences from the backup.",
+    importAction: "Import selected",
+    importSuccess:
+      "Imported %{imported}, updated %{updated}, skipped %{skipped}.",
+    importFailed: "Could not import the backup.",
+    pickerUnavailable:
+      "The file picker requires a newer build of the app.",
+    premiumDescription:
+      "Exporting and importing servers with credentials and settings is a Premium feature.",
   },
   servers: {
     title: "Servers",
@@ -135,7 +233,8 @@ export const en: TranslationTree = {
     },
   },
   export: {
-    savedIn: "Saved in Documents/exports:\n%{filename}",
+    savedIn:
+      "Saved to Downloads:\n%{filename}\n(The first time Android asks you to pick a folder; choose Downloads.)",
     noEvents: "There are no events to export with the current filter.",
     noMonitors: "There are no monitors to export in this window.",
   },

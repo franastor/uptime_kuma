@@ -5,13 +5,17 @@ import {
   useRef,
   useState,
 } from "react";
+import { AppState, type AppStateStatus } from "react-native";
 
 import { useMonitorStore } from "@/src/modules/monitor/store/monitor.store";
 import { useHeartbeatHistoryStore } from "@/src/modules/monitor/store/heartbeatHistory.store";
+import { useMonitorPreferencesStore } from "@/src/modules/monitor/store/monitorPreferences.store";
 import { useMonitorStatsStore } from "@/src/modules/monitor/store/monitorStats.store";
 import { useAppSettingsStore } from "@/src/modules/settings/store/appSettings.store";
 import { useSubscriptionStore } from "@/src/modules/subscription/store/subscription.store";
 import { useTimelineStore } from "@/src/modules/timeline/store/timeline.store";
+import { VaultLockOverlay } from "@/src/modules/vault/components/VaultLockOverlay";
+import { useVaultStore } from "@/src/modules/vault/store/vault.store";
 import {
   notificationService,
   type NotificationDeepLinkData,
@@ -37,8 +41,23 @@ export default function RootLayout() {
     useSubscriptionStore(
       (state) => state.hydrate,
     );
+  const hydrateVault = useVaultStore(
+    (state) => state.hydrate,
+  );
+  const markBackground = useVaultStore(
+    (state) => state.markBackground,
+  );
+  const maybeLockFromTimeout = useVaultStore(
+    (state) => state.maybeLockFromTimeout,
+  );
+  const lockTimeoutMinutes = useAppSettingsStore(
+    (state) => state.lockTimeoutMinutes,
+  );
   const handledColdStart =
     useRef(false);
+  const appState = useRef<AppStateStatus>(
+    AppState.currentState,
+  );
   const [showPermissionModal, setShowPermissionModal] =
     useState(false);
   const [requestingPermission, setRequestingPermission] =
@@ -58,7 +77,44 @@ export default function RootLayout() {
       .getState()
       .hydrate();
     void useAppSettingsStore.getState().hydrate();
-  }, []);
+    void useMonitorPreferencesStore
+      .getState()
+      .hydrate();
+    void hydrateVault();
+  }, [hydrateVault]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      "change",
+      (nextState) => {
+        const previous = appState.current;
+        appState.current = nextState;
+
+        if (
+          previous === "active" &&
+          nextState.match(/inactive|background/)
+        ) {
+          markBackground();
+          return;
+        }
+
+        if (
+          previous.match(/inactive|background/) &&
+          nextState === "active"
+        ) {
+          maybeLockFromTimeout(lockTimeoutMinutes);
+        }
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [
+    lockTimeoutMinutes,
+    markBackground,
+    maybeLockFromTimeout,
+  ]);
 
   useEffect(() => {
     void notificationService
@@ -121,6 +177,8 @@ export default function RootLayout() {
           animation: "fade",
         }}
       />
+
+      <VaultLockOverlay />
 
       <ConfirmModal
         visible={showPermissionModal}

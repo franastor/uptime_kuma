@@ -16,6 +16,9 @@ interface MonitorPreferencesState {
     serverId: string,
     monitorId: number,
   ) => Promise<void>;
+  replaceFavorites: (
+    favorites: Record<string, number[]>,
+  ) => Promise<void>;
 }
 
 async function persistFavorites(
@@ -77,5 +80,10 @@ export const useMonitorPreferencesStore =
 
       set({ favoriteIdsByServer: nextFavorites });
       await persistFavorites(nextFavorites);
+    },
+
+    replaceFavorites: async (favorites) => {
+      set({ favoriteIdsByServer: favorites });
+      await persistFavorites(favorites);
     },
   }));

@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.9.0 — Vault local, biometría y backup de servidores
+
+- **Vault local**: contraseña maestra opcional (hash en SecureStore) para bloquear la app al arrancar o tras un tiempo en segundo plano.
+- **Biometría**: huella / Face ID como atajo de desbloqueo (no sustituye la pass maestra).
+- **Backup Premium** (`server-backup`): export/import cifrado (AES‑GCM, archivo `.kpb`) eligiendo servidores.
+- El backup incluye por servidor URL, usuario, contraseña, 2FA, favoritos y objetivo SLA; opcionalmente idioma y preferencias de notificaciones.
+- CSV y backups se guardan en **Descargas** (Android, vía selector SAF la primera vez); iOS usa Documentos de la app.
+- Pantallas nuevas en Ajustes: **Seguridad** y **Copia de servidores**.
+
 ## v0.8.8 — Multiidioma español / inglés
 
 - Selector de idioma en Ajustes: **Sistema**, **Español** o **English**, persistido en el dispositivo.

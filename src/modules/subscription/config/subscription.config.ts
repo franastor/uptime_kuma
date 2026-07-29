@@ -23,5 +23,6 @@ export const PLAN_FEATURES: Record<
     "unlimited-monitors",
     "custom-themes",
     "data-export",
+    "server-backup",
   ]),
 };

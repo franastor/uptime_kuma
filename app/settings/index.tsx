@@ -60,6 +60,70 @@ export default function SettingsScreen() {
         <Pressable
           accessibilityRole="button"
           onPress={() =>
+            router.push("/settings/security")
+          }
+          style={({ pressed }) => [
+            styles.linkCard,
+            pressed ? styles.linkCardPressed : null,
+          ]}
+        >
+          <View style={styles.linkIcon}>
+            <MaterialIcons
+              name="lock"
+              size={22}
+              color={colors.primary}
+            />
+          </View>
+          <View style={styles.linkInfo}>
+            <Text style={styles.linkTitle}>
+              {t("settings.security")}
+            </Text>
+            <Text style={styles.linkDescription}>
+              {t("settings.securityHint")}
+            </Text>
+          </View>
+          <MaterialIcons
+            name="chevron-right"
+            size={22}
+            color={colors.textMuted}
+          />
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={() =>
+            router.push("/settings/backup")
+          }
+          style={({ pressed }) => [
+            styles.linkCard,
+            pressed ? styles.linkCardPressed : null,
+          ]}
+        >
+          <View style={styles.linkIcon}>
+            <MaterialIcons
+              name="import-export"
+              size={22}
+              color={colors.primary}
+            />
+          </View>
+          <View style={styles.linkInfo}>
+            <Text style={styles.linkTitle}>
+              {t("settings.backup")}
+            </Text>
+            <Text style={styles.linkDescription}>
+              {t("settings.backupHint")}
+            </Text>
+          </View>
+          <MaterialIcons
+            name="chevron-right"
+            size={22}
+            color={colors.textMuted}
+          />
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={() =>
             router.push(
               "/settings/notifications",
             )

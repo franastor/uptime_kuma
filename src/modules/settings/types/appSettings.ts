@@ -6,12 +6,25 @@ export type AppSettings = {
   slaTargetByServer: Record<string, number>;
   /** Idioma de la UI: sistema, español o inglés. */
   locale: AppLocalePreference;
+  /** Atajo biométrico al vault (requiere vault activo). */
+  biometricUnlockEnabled: boolean;
+  /**
+   * Minutos en background antes de volver a pedir unlock.
+   * `0` = bloquear en cuanto la app pasa a segundo plano.
+   */
+  lockTimeoutMinutes: number;
 };
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   slaTargetByServer: {},
   locale: "system",
+  biometricUnlockEnabled: false,
+  lockTimeoutMinutes: 5,
 };
+
+export const LOCK_TIMEOUT_PRESETS = [
+  0, 1, 5, 15, 30,
+] as const;
 
 /** Clave interna tras migrar el SLA global de v1. */
 export const LEGACY_DEFAULT_SLA_KEY =
