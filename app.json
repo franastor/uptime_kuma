@@ -1,25 +1,26 @@
 {
   "expo": {
-    "name": "kuma",
-    "slug": "kuma",
-    "version": "1.0.0",
+    "name": "KumaPulse",
+    "slug": "kumapulse",
+    "version": "0.6.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "kuma",
+    "scheme": "kumapulse",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kumapulse.app"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#07110D",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.kumapulse.app"
     },
     "web": {
       "output": "static",
@@ -31,11 +32,11 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "imageWidth": 220,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#07110D",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#07110D"
           }
         }
       ],

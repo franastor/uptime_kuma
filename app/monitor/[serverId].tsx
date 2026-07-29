@@ -1,11 +1,9 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Stack, router, useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  LayoutAnimation,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -22,7 +20,6 @@ import {
 import { useMonitorPreferencesStore } from "@/src/modules/monitor/store/monitorPreferences.store";
 import { useMonitorStore } from "@/src/modules/monitor/store/monitor.store";
 import type { Monitor } from "@/src/modules/monitor/types/monitor";
-import { getMonitorCategory } from "@/src/modules/monitor/utils/monitorState";
 import { useServerStore } from "@/src/modules/servers/store/server.store";
 import { useSubscriptionStore } from "@/src/modules/subscription/store/subscription.store";
 import {
@@ -62,13 +59,11 @@ function matchesFilter(
 ): boolean {
   switch (filter) {
     case "up":
-      return getMonitorCategory(monitor) === "up";
-    case "incident":
-      return getMonitorCategory(monitor) === "incident";
-    case "no-data":
-      return getMonitorCategory(monitor) === "no-data";
+      return monitor.active && monitor.status === "up";
+    case "down":
+      return monitor.active && monitor.status === "down";
     case "paused":
-      return getMonitorCategory(monitor) === "paused";
+      return !monitor.active;
     case "favorites":
       return favorites.includes(monitor.id);
     case "all":
@@ -87,8 +82,6 @@ export default function MonitorsScreen() {
 
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<MonitorFilter>("all");
-  const scrollRef = useRef<ScrollView>(null);
-  const monitorListOffset = useRef(0);
 
   const server = useServerStore((state) =>
     state.servers.find((item) => item.id === serverId),
@@ -142,24 +135,6 @@ export default function MonitorsScreen() {
     [favorites, filter, monitors, query],
   );
 
-  function applyFilter(nextFilter: MonitorFilter): void {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setQuery("");
-    setFilter(nextFilter);
-
-    requestAnimationFrame(() => {
-      scrollRef.current?.scrollTo({
-        y: Math.max(0, monitorListOffset.current - spacing.md),
-        animated: true,
-      });
-    });
-  }
-
-  function handleIncidentPress(monitor: Monitor): void {
-    const category = getMonitorCategory(monitor);
-    applyFilter(category === "no-data" ? "no-data" : "incident");
-  }
-
   async function handleToggleFavorite(monitorId: number): Promise<void> {
     if (!serverId) {
       return;
@@ -207,7 +182,7 @@ export default function MonitorsScreen() {
     <>
       <Stack.Screen options={{ title: server.name }} />
 
-      <Screen scroll scrollRef={scrollRef}>
+      <Screen scroll>
         <View style={styles.header}>
           <View style={styles.headerInformation}>
             <Text style={styles.title}>Monitores</Text>
@@ -284,46 +259,43 @@ export default function MonitorsScreen() {
 
             <View style={styles.statsGrid}>
               <StatCard
+                label="Monitores"
+                value={summary.total}
+                icon="monitor"
+                helper="Total configurados"
+              />
+              <StatCard
                 label="Operativos"
                 value={summary.up}
                 icon="check-circle-outline"
                 accentColor={colors.success}
                 helper="Funcionando ahora"
-                selected={filter === "up"}
-                onPress={() => applyFilter("up")}
               />
               <StatCard
                 label="Incidencias"
                 value={summary.activeIncidents}
                 icon="error-outline"
                 accentColor={
-                  summary.activeIncidents > 0 ? colors.danger : colors.success
+                  summary.activeIncidents > 0
+                    ? colors.danger
+                    : colors.success
                 }
                 helper={
                   summary.activeIncidents > 0
                     ? `${summary.down} caídos · ${summary.pending} pendientes`
                     : "Sin incidencias activas"
                 }
-                selected={filter === "incident"}
-                onPress={() => applyFilter("incident")}
               />
               <StatCard
-                label="Sin datos"
-                value={summary.unknown}
-                icon="help-outline"
-                accentColor={colors.textMuted}
-                helper="Esperando comprobaciones"
-                selected={filter === "no-data"}
-                onPress={() => applyFilter("no-data")}
-              />
-              <StatCard
-                label="Pausados"
-                value={summary.paused}
-                icon="pause-circle-outline"
-                accentColor={colors.warning}
-                helper={`${summary.total} monitores en total`}
-                selected={filter === "paused"}
-                onPress={() => applyFilter("paused")}
+                label="Ping medio"
+                value={
+                  summary.averagePing === null
+                    ? "—"
+                    : `${summary.averagePing} ms`
+                }
+                icon="speed"
+                accentColor={colors.info}
+                helper={`${summary.paused} pausados · ${summary.unknown} sin datos`}
               />
             </View>
 
@@ -345,11 +317,7 @@ export default function MonitorsScreen() {
               {activeIncidents.length > 0 ? (
                 <View style={styles.incidentList}>
                   {activeIncidents.map((incident) => (
-                    <IncidentCard
-                      key={incident.monitor.id}
-                      incident={incident}
-                      onPress={() => handleIncidentPress(incident.monitor)}
-                    />
+                    <IncidentCard key={incident.monitor.id} incident={incident} />
                   ))}
                 </View>
               ) : (
@@ -386,13 +354,7 @@ export default function MonitorsScreen() {
               </View>
             ) : null}
 
-            <View
-              onLayout={(event) => {
-                monitorListOffset.current = event.nativeEvent.layout.y;
-              }}
-              style={styles.listSection}
-            >
-              <View style={styles.listHeader}>
+            <View style={styles.listHeader}>
               <View>
                 <Text style={styles.sectionTitle}>Todos los monitores</Text>
                 <Text style={styles.sectionDescription}>
@@ -413,15 +375,15 @@ export default function MonitorsScreen() {
               </View>
             </View>
 
-              <MonitorFilters
+            <MonitorFilters
               query={query}
               filter={filter}
               onQueryChange={setQuery}
-              onFilterChange={applyFilter}
+              onFilterChange={setFilter}
             />
 
-              {visibleMonitors.length > 0 ? (
-                <View style={styles.monitorList}>
+            {visibleMonitors.length > 0 ? (
+              <View style={styles.monitorList}>
                 {visibleMonitors.map((monitor) => (
                   <MonitorCard
                     key={monitor.id}
@@ -445,8 +407,7 @@ export default function MonitorsScreen() {
                   Prueba con otra búsqueda o cambia el filtro seleccionado.
                 </Text>
               </View>
-              )}
-            </View>
+            )}
           </View>
         ) : null}
       </Screen>
@@ -683,9 +644,6 @@ const styles = StyleSheet.create({
   premiumDescription: {
     ...typography.caption,
     color: colors.textSecondary,
-  },
-  listSection: {
-    gap: spacing.md,
   },
   listHeader: {
     flexDirection: "row",

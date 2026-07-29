@@ -30,6 +30,7 @@ import { useMonitorStore } from "@/src/modules/monitor/store/monitor.store";
 import { useServerStore } from "@/src/modules/servers/store/server.store";
 
 import { AppButton } from "@/src/shared/components/AppButton";
+import { BrandHeader } from "@/src/shared/components/BrandHeader";
 import { AppTextInput } from "@/src/shared/components/AppTextInput";
 import { Screen } from "@/src/shared/components/Screen";
 
@@ -427,6 +428,8 @@ export default function AddServerScreen() {
             styles.container
           }
         >
+          <BrandHeader compact={isEditing} />
+
           <View
             style={
               styles.header
@@ -439,7 +442,7 @@ export default function AddServerScreen() {
             >
               {isEditing
                 ? "Editar conexión"
-                : "Añadir servidor"}
+                : "Conecta tu primer servidor"}
             </Text>
 
             <Text
@@ -449,7 +452,7 @@ export default function AddServerScreen() {
             >
               {isEditing
                 ? "Modifica los datos utilizados para conectar con esta instancia de Uptime Kuma."
-                : "Guarda una instancia privada de Uptime Kuma. Podrás añadir más servidores después."}
+                : "Añade tu instancia de Uptime Kuma y consulta el pulso de todos tus servicios desde KumaPulse."}
             </Text>
           </View>
 

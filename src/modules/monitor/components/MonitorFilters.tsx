@@ -13,8 +13,7 @@ import { colors, spacing, typography } from "@/src/shared/theme";
 export type MonitorFilter =
   | "all"
   | "up"
-  | "incident"
-  | "no-data"
+  | "down"
   | "paused"
   | "favorites";
 
@@ -25,11 +24,13 @@ interface MonitorFiltersProps {
   onFilterChange: (filter: MonitorFilter) => void;
 }
 
-const FILTERS: { id: MonitorFilter; label: string }[] = [
+const FILTERS: {
+  id: MonitorFilter;
+  label: string;
+}[] = [
   { id: "all", label: "Todos" },
-  { id: "up", label: "Operativos" },
-  { id: "incident", label: "Incidencias" },
-  { id: "no-data", label: "Sin datos" },
+  { id: "up", label: "UP" },
+  { id: "down", label: "DOWN" },
   { id: "paused", label: "Pausados" },
   { id: "favorites", label: "Favoritos" },
 ];
@@ -43,7 +44,11 @@ export function MonitorFilters({
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
-        <MaterialIcons name="search" size={22} color={colors.textMuted} />
+        <MaterialIcons
+          name="search"
+          size={22}
+          color={colors.textMuted}
+        />
         <TextInput
           value={query}
           onChangeText={onQueryChange}
@@ -58,7 +63,11 @@ export function MonitorFilters({
             accessibilityLabel="Limpiar búsqueda"
             onPress={() => onQueryChange("")}
           >
-            <MaterialIcons name="cancel" size={20} color={colors.textMuted} />
+            <MaterialIcons
+              name="cancel"
+              size={20}
+              color={colors.textMuted}
+            />
           </Pressable>
         ) : null}
       </View>
@@ -74,8 +83,6 @@ export function MonitorFilters({
           return (
             <Pressable
               key={item.id}
-              accessibilityRole="button"
-              accessibilityState={{ selected }}
               onPress={() => onFilterChange(item.id)}
               style={({ pressed }) => [
                 styles.filterChip,
@@ -100,7 +107,9 @@ export function MonitorFilters({
 }
 
 const styles = StyleSheet.create({
-  container: { gap: spacing.md },
+  container: {
+    gap: spacing.md,
+  },
   searchContainer: {
     minHeight: 50,
     flexDirection: "row",
@@ -112,8 +121,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: colors.surface,
   },
-  input: { ...typography.body, flex: 1, color: colors.text },
-  filterList: { gap: spacing.sm },
+  input: {
+    ...typography.body,
+    flex: 1,
+    color: colors.text,
+  },
+  filterList: {
+    gap: spacing.sm,
+  },
   filterChip: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -126,11 +141,15 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
     backgroundColor: colors.surfaceElevated,
   },
-  filterChipPressed: { opacity: 0.7 },
+  filterChipPressed: {
+    opacity: 0.7,
+  },
   filterText: {
     ...typography.caption,
     color: colors.textSecondary,
     fontWeight: "700",
   },
-  selectedFilterText: { color: colors.primary },
+  selectedFilterText: {
+    color: colors.primary,
+  },
 });

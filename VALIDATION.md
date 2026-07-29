@@ -1,6 +1,6 @@
-# Validación Sprint 10.1
+# Validación — KumaPulse v0.6.0
 
-Desde la raíz del proyecto:
+Ejecuta desde la raíz del proyecto:
 
 ```bash
 npm install
@@ -9,12 +9,10 @@ npm run lint
 npx expo start --clear
 ```
 
-Prueba manual:
+Comprueba además que:
 
-1. Abre una instancia que tenga monitores operativos, pausados, pendientes o sin datos.
-2. Pulsa cada tarjeta del resumen y confirma que aplica el filtro correcto.
-3. Comprueba que la pantalla se desplaza automáticamente hasta la lista de monitores.
-4. Pulsa un monitor del Centro de operaciones y confirma que muestra el grupo correspondiente.
-5. Verifica que los contadores coinciden con el número de monitores visibles para cada filtro.
-6. Comprueba que los monitores `unknown` aparecen como «Sin datos» y no como incidencia crítica.
-7. Confirma que búsqueda, favoritos y filtros manuales siguen funcionando.
+- El nombre mostrado es **KumaPulse**.
+- El icono aparece correctamente en Expo y en una build instalada.
+- La splash usa fondo grafito y el nuevo símbolo.
+- La pantalla de añadir servidor muestra el eslogan.
+- La edición y conexión de servidores siguen funcionando.
