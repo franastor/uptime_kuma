@@ -7,6 +7,7 @@ import {
   KumaAuthenticationError,
   KumaConnectionError,
   KumaTwoFactorRequiredError,
+  type KumaLoginByTokenResponse,
   type KumaLoginCredentials,
   type KumaLoginResponse,
   type KumaSocketConnectionOptions,
@@ -332,6 +333,33 @@ export class KumaSocket {
       throw new KumaAuthenticationError(
         response.msg ||
           "Usuario o contraseña incorrectos.",
+      );
+    }
+
+    return response;
+  }
+
+  async loginByToken(
+    token: string,
+  ): Promise<KumaLoginByTokenResponse> {
+    const socket =
+      this.getConnectedSocket();
+
+    const response =
+      await this.emitWithCallback<
+        string,
+        KumaLoginByTokenResponse
+      >(
+        socket,
+        "loginByToken",
+        token,
+        DEFAULT_LOGIN_TIMEOUT,
+      );
+
+    if (!response.ok) {
+      throw new KumaAuthenticationError(
+        response.msg ||
+          "La sesión guardada ya no es válida.",
       );
     }
 

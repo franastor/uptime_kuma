@@ -328,19 +328,6 @@ export default function ServersScreen() {
       return;
     }
 
-    if (
-      server.hasTwoFactor &&
-      !kumaService.isConnected(
-        server.id,
-      )
-    ) {
-      openTwoFactorModal(
-        server,
-      );
-
-      return;
-    }
-
     try {
       await connectWithoutTwoFactor(
         server,

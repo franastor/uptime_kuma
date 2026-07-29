@@ -10,6 +10,7 @@ import {
     Modal,
     Platform,
     Pressable,
+    ScrollView,
     StyleSheet,
     Text,
     TextInput,
@@ -158,7 +159,7 @@ import {
           behavior={
             Platform.OS === "ios"
               ? "padding"
-              : undefined
+              : "height"
           }
           style={styles.overlay}
         >
@@ -172,37 +173,46 @@ import {
             }
           />
   
-          <View
-            style={styles.modalCard}
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={
+              styles.scrollContent
+            }
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            bounces={false}
           >
             <View
-              style={
-                styles.iconContainer
-              }
+              style={styles.modalCard}
             >
-              <Text style={styles.icon}>
-                🔐
+              <View
+                style={
+                  styles.iconContainer
+                }
+              >
+                <Text style={styles.icon}>
+                  🔐
+                </Text>
+              </View>
+  
+              <Text style={styles.title}>
+                Autenticación en dos pasos
               </Text>
-            </View>
   
-            <Text style={styles.title}>
-              Autenticación en dos pasos
-            </Text>
+              <Text
+                style={
+                  styles.description
+                }
+              >
+                Introduce el código generado
+                por tu aplicación de
+                autenticación
+                {serverName
+                  ? ` para conectar con "${serverName}".`
+                  : "."}
+              </Text>
   
-            <Text
-              style={
-                styles.description
-              }
-            >
-              Introduce el código generado
-              por tu aplicación de
-              autenticación
-              {serverName
-                ? ` para conectar con "${serverName}".`
-                : "."}
-            </Text>
-  
-            <TextInput
+              <TextInput
               ref={inputRef}
               value={token}
               editable={!loading}
@@ -228,21 +238,21 @@ import {
                 displayedError &&
                   styles.inputError,
               ]}
-            />
+              />
   
-            {displayedError ? (
-              <Text
-                style={
-                  styles.errorMessage
-                }
+              {displayedError ? (
+                <Text
+                  style={
+                    styles.errorMessage
+                  }
+                >
+                  {displayedError}
+                </Text>
+              ) : null}
+  
+              <View
+                style={styles.actions}
               >
-                {displayedError}
-              </Text>
-            ) : null}
-  
-            <View
-              style={styles.actions}
-            >
               <Pressable
                 disabled={loading}
                 onPress={onCancel}
@@ -299,8 +309,9 @@ import {
                   </Text>
                 )}
               </Pressable>
+              </View>
             </View>
-          </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
     );
@@ -309,11 +320,19 @@ import {
   const styles = StyleSheet.create({
     overlay: {
       flex: 1,
+      backgroundColor:
+        "rgba(0, 0, 0, 0.65)",
+    },
+
+    scrollView: {
+      width: "100%",
+    },
+
+    scrollContent: {
+      flexGrow: 1,
       alignItems: "center",
       justifyContent: "center",
       padding: spacing.xl,
-      backgroundColor:
-        "rgba(0, 0, 0, 0.65)",
     },
   
     modalCard: {

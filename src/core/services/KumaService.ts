@@ -6,7 +6,12 @@ import {
   KumaTwoFactorRequiredError,
 } from "@/src/core/socket/kumaSocket.types";
 
-import { getServerCredentials } from "@/src/core/storage/serverStorage";
+import {
+  deleteServerSession,
+  getServerCredentials,
+  getServerSession,
+  saveServerSession,
+} from "@/src/core/storage/serverStorage";
 
 import { useServerStore } from "@/src/modules/servers/store/server.store";
 
@@ -32,6 +37,9 @@ export type KumaConnectionResult = {
   authenticated: true;
   sessionToken?: string;
 };
+
+const RECONNECT_AUTH_ERROR =
+  "La sesión ha caducado. Vuelve a conectarte para validar el acceso.";
 
 function normalizeHeartbeatStatus(
   status: number,
@@ -318,18 +326,10 @@ class KumaService {
 
     socket.setReconnectListener(
       () => {
-        void this.updateConnectionStatus(
+        void this.handleReconnectAuthentication(
           serverId,
-          "connected",
-          null,
+          socket,
         );
-
-        useMonitorStore
-          .getState()
-          .setError(
-            serverId,
-            null,
-          );
       },
     );
 
@@ -398,15 +398,13 @@ class KumaService {
       });
 
       const loginResponse =
-        await socket.login({
-          username: server.username,
-
-          password:
-            credentials.password,
-
-          token:
-            options.twoFactorToken,
-        });
+        await this.authenticateSocket(
+          serverId,
+          socket,
+          server.username,
+          credentials.password,
+          options.twoFactorToken,
+        );
 
       await this.updateConnectionStatus(
         serverId,
@@ -560,6 +558,110 @@ class KumaService {
       syncedAt:
         new Date().toISOString(),
     });
+  }
+
+  private async authenticateSocket(
+    serverId: string,
+    socket: KumaSocket,
+    username: string,
+    password: string,
+    twoFactorToken?: string,
+  ): Promise<{
+    token?: string;
+  }> {
+    if (!twoFactorToken) {
+      const storedSession =
+        await getServerSession(serverId);
+
+      if (storedSession) {
+        try {
+          await socket.loginByToken(
+            storedSession.token,
+          );
+
+          return {
+            token: storedSession.token,
+          };
+        } catch {
+          await deleteServerSession(serverId);
+        }
+      }
+    }
+
+    const loginResponse =
+      await socket.login({
+        username,
+        password,
+        token: twoFactorToken,
+      });
+
+    if (loginResponse.token) {
+      await saveServerSession(serverId, {
+        token: loginResponse.token,
+        issuedAt: new Date().toISOString(),
+      });
+    }
+
+    return {
+      token: loginResponse.token,
+    };
+  }
+
+  private async handleReconnectAuthentication(
+    serverId: string,
+    socket: KumaSocket,
+  ): Promise<void> {
+    try {
+      const storedSession =
+        await getServerSession(serverId);
+
+      if (!storedSession) {
+        throw new KumaAuthenticationError(
+          RECONNECT_AUTH_ERROR,
+        );
+      }
+
+      await socket.loginByToken(
+        storedSession.token,
+      );
+
+      await this.updateConnectionStatus(
+        serverId,
+        "connected",
+        null,
+      );
+
+      useMonitorStore
+        .getState()
+        .setError(
+          serverId,
+          null,
+        );
+    } catch (error) {
+      await deleteServerSession(serverId);
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : RECONNECT_AUTH_ERROR;
+
+      await this.updateConnectionStatus(
+        serverId,
+        "auth-error",
+        message,
+      );
+
+      useMonitorStore
+        .getState()
+        .setLoading(serverId, false);
+
+      useMonitorStore
+        .getState()
+        .setError(
+          serverId,
+          message,
+        );
+    }
   }
 }
 

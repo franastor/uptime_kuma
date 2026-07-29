@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 import {
   deleteServerCredentials,
+  deleteServerSession,
   getActiveServerId,
   getStoredServers,
   saveActiveServerId,
@@ -272,6 +273,10 @@ export const useServerStore =
           saveActiveServerId(
             input.serverId,
           ),
+
+          deleteServerSession(
+            input.serverId,
+          ),
         ]);
 
         set({
@@ -315,6 +320,10 @@ export const useServerStore =
         ),
 
         deleteServerCredentials(
+          serverId,
+        ),
+
+        deleteServerSession(
           serverId,
         ),
 

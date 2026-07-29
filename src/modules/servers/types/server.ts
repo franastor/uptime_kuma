@@ -27,6 +27,11 @@ export type KumaServerCredentials = {
   password: string;
 };
 
+export type KumaServerSession = {
+  token: string;
+  issuedAt: string;
+};
+
 export type CreateKumaServerInput = {
   name: string;
   url: string;

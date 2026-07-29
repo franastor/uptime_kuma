@@ -10,6 +10,8 @@
 - Solo notificaciones locales (sin push remotas).
 - Dependencia `expo-notifications` y canal Android `monitor-status`.
 - Centro de operaciones expandible/colapsable.
+- Sesión persistente de 24 h para reutilizar `loginByToken` y evitar pedir 2FA en cada acceso.
+- Re-autenticación automática tras reconectar el socket; si la sesión ya no es válida, se vuelve a pedir acceso.
 
 ## v0.6.1 — Notification Foundation
 

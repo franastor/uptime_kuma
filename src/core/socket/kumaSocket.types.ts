@@ -12,6 +12,12 @@ export type KumaLoginCredentials = {
     tokenRequired?: boolean;
   };
   
+export type KumaLoginByTokenResponse = {
+  ok: boolean;
+  msg?: string;
+  msgi18n?: boolean;
+};
+
   export type KumaSocketConnectionOptions = {
     url: string;
     timeout?: number;

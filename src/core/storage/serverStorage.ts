@@ -4,13 +4,19 @@ import * as SecureStore from "expo-secure-store";
 import type {
   KumaServer,
   KumaServerCredentials,
+  KumaServerSession,
 } from "@/src/modules/servers/types/server";
 
 const SERVERS_STORAGE_KEY = "kuma.servers";
 const ACTIVE_SERVER_STORAGE_KEY = "kuma.activeServerId";
+const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 
 function getCredentialsKey(serverId: string) {
   return `kuma.credentials.${serverId}`;
+}
+
+function getSessionKey(serverId: string) {
+  return `kuma.session.${serverId}`;
 }
 
 export async function getStoredServers(): Promise<KumaServer[]> {
@@ -70,6 +76,66 @@ export async function deleteServerCredentials(
   serverId: string,
 ): Promise<void> {
   await SecureStore.deleteItemAsync(getCredentialsKey(serverId));
+}
+
+export async function saveServerSession(
+  serverId: string,
+  session: KumaServerSession,
+): Promise<void> {
+  await SecureStore.setItemAsync(
+    getSessionKey(serverId),
+    JSON.stringify(session),
+  );
+}
+
+export async function getServerSession(
+  serverId: string,
+): Promise<KumaServerSession | null> {
+  const storedValue = await SecureStore.getItemAsync(
+    getSessionKey(serverId),
+  );
+
+  if (!storedValue) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(
+      storedValue,
+    ) as KumaServerSession;
+
+    if (
+      typeof parsed.token !== "string" ||
+      parsed.token.length === 0 ||
+      typeof parsed.issuedAt !== "string"
+    ) {
+      await deleteServerSession(serverId);
+      return null;
+    }
+
+    const issuedAt = Date.parse(parsed.issuedAt);
+
+    if (
+      Number.isNaN(issuedAt) ||
+      Date.now() - issuedAt > SESSION_TTL_MS
+    ) {
+      await deleteServerSession(serverId);
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    await deleteServerSession(serverId);
+    return null;
+  }
+}
+
+export async function deleteServerSession(
+  serverId: string,
+): Promise<void> {
+  await SecureStore.deleteItemAsync(
+    getSessionKey(serverId),
+  );
 }
 
 export async function saveActiveServerId(
