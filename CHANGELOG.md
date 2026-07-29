@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.8.5 — Insights y tendencias profundas
+
+- Nueva sección **Tendencias** en el Dashboard avanzado: dirección de uptime, incidencias y latencia frente al periodo anterior, comparación 24 h vs 7 d, hotspot del heatmap y monitor más inestable.
+- Insights ampliados: flapping, incidencias abiertas prolongadas, patrones por día/hora, concentración de downtime, P95 alto, SLA en riesgo y señales de mejora (menos caídas, mejor latencia/uptime).
+- Cada insight tiene categoría y, si apunta a un monitor, abre su detalle al pulsar.
+- Premium: tendencias e insights profundos siguen detrás de `advanced-dashboard`.
+
 ## v0.8.4 — Dashboard avanzado completo (PDF)
 
 - El Dashboard avanzado Premium cubre ya los bloques de la propuesta: Health Score, disponibilidad 24 h/7 d/30 d/90 d, latencia (media, pico, P95), monitores prioritarios, incidencias activas, distribución por estado, rankings (disponibilidad y latencia), actividad reciente, SSL, comparativas e insights.

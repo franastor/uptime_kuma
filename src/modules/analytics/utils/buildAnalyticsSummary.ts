@@ -11,6 +11,7 @@ import {
 import {
   buildInsights,
   buildStatusDistribution,
+  buildTrendSignals,
   computeHealthScore,
 } from "@/src/modules/analytics/utils/buildAdvancedMetrics";
 import { buildHeatmap } from "@/src/modules/analytics/utils/buildHeatmap";
@@ -536,11 +537,20 @@ export function buildAnalyticsSummary({
     downCount: statusDistribution.down,
   });
 
-  const sslExpiringSoon = sslCertificates.filter(
-    (item) =>
-      item.daysRemaining != null &&
-      item.daysRemaining <= 30,
-  ).length;
+  const heatmap = buildHeatmap(
+    intervals,
+    windowStart,
+    windowEnd,
+  );
+
+  const trends = buildTrendSignals({
+    window,
+    comparative,
+    latency,
+    availabilityTrend,
+    heatmap,
+    ranking,
+  });
 
   const insights = buildInsights({
     healthScore,
@@ -549,8 +559,16 @@ export function buildAnalyticsSummary({
     latency,
     comparative,
     distribution: statusDistribution,
-    sslExpiringSoon,
-    monitorsBelowSla: monitorsBelowSla.length,
+    sslCertificates,
+    monitorsBelowSla,
+    monitors: activeMonitors,
+    heatmap,
+    intervals,
+    totalDowntimeMs,
+    windowStart,
+    windowEnd,
+    windowMs,
+    window,
   });
 
   const eventsInWindow = scopedEvents.filter(
@@ -585,17 +603,14 @@ export function buildAnalyticsSummary({
     ranking,
     latencyRanking,
     priorityMonitors,
-    heatmap: buildHeatmap(
-      intervals,
-      windowStart,
-      windowEnd,
-    ),
+    heatmap,
     healthScore,
     statusDistribution,
     latency,
     comparative,
     sslCertificates,
     availabilityTrend,
+    trends,
     insights,
     hasLimitedHistory:
       eventsInWindow < 3 &&

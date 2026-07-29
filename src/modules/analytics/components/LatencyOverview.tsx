@@ -1,20 +1,29 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import type { LatencyStats } from "@/src/modules/analytics/types/analytics";
+import type {
+  AnalyticsWindow,
+  LatencyStats,
+} from "@/src/modules/analytics/types/analytics";
 import {
   formatPingMs,
   formatSignedDelta,
   getDeltaColor,
+  getPreviousPeriodShortLabel,
 } from "@/src/modules/analytics/utils/formatAnalytics";
 import { colors, spacing, typography } from "@/src/shared/theme";
 
 type LatencyOverviewProps = {
   latency: LatencyStats;
+  window: AnalyticsWindow;
 };
 
 export function LatencyOverview({
   latency,
+  window,
 }: LatencyOverviewProps) {
+  const previousShort =
+    getPreviousPeriodShortLabel(window);
+
   return (
     <View style={styles.grid}>
       <Metric
@@ -30,7 +39,7 @@ export function LatencyOverview({
         value={formatPingMs(latency.p95Ms)}
       />
       <Metric
-        label="vs periodo anterior"
+        label={`vs ${previousShort}`}
         value={formatSignedDelta(latency.deltaMs, {
           suffix: " ms",
           digits: 0,
@@ -38,8 +47,8 @@ export function LatencyOverview({
         color={getDeltaColor(latency.deltaMs)}
         helper={
           latency.previousAverageMs == null
-            ? "Sin datos previos"
-            : `Antes ${formatPingMs(
+            ? `Sin datos de ${previousShort}`
+            : `${previousShort}: ${formatPingMs(
                 latency.previousAverageMs,
               )}`
         }

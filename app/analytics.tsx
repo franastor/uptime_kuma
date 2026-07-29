@@ -4,9 +4,10 @@ import {
   router,
   useLocalSearchParams,
 } from "expo-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -25,7 +26,9 @@ import { PriorityMonitorsList } from "@/src/modules/analytics/components/Priorit
 import { SlaOverview } from "@/src/modules/analytics/components/SlaOverview";
 import { SslCertificatesList } from "@/src/modules/analytics/components/SslCertificatesList";
 import { StatusDistributionCard } from "@/src/modules/analytics/components/StatusDistributionCard";
+import { TrendsOverview } from "@/src/modules/analytics/components/TrendsOverview";
 import type {
+  AnalyticsInsight,
   AnalyticsWindow,
   MonitorAnalytics,
 } from "@/src/modules/analytics/types/analytics";
@@ -33,6 +36,7 @@ import {
   buildAnalyticsSummary,
   getAnalyticsWindowLabel,
 } from "@/src/modules/analytics/utils/buildAnalyticsSummary";
+import { getPreviousPeriodExplanation } from "@/src/modules/analytics/utils/formatAnalytics";
 import { IncidentCard } from "@/src/modules/incidents/components/IncidentCard";
 import { getActiveIncidents } from "@/src/modules/incidents/utils/getActiveIncidents";
 import { useHeartbeatHistoryStore } from "@/src/modules/monitor/store/heartbeatHistory.store";
@@ -68,6 +72,7 @@ type DashboardSection =
   | "ssl"
   | "heatmap"
   | "activity"
+  | "trends"
   | "insights";
 
 const DASHBOARD_SECTIONS: {
@@ -97,6 +102,7 @@ const DASHBOARD_SECTIONS: {
   { id: "ssl", label: "SSL", icon: "verified-user" },
   { id: "heatmap", label: "Heatmap", icon: "grid-view" },
   { id: "activity", label: "Actividad", icon: "timeline" },
+  { id: "trends", label: "Tendencias", icon: "insights" },
   { id: "insights", label: "Insights", icon: "lightbulb" },
 ];
 
@@ -140,6 +146,35 @@ export default function AnalyticsScreen() {
     useState<AnalyticsWindow>("24h");
   const [activeSection, setActiveSection] =
     useState<DashboardSection>("health");
+  const scrollRef = useRef<ScrollView>(null);
+  const contentOffsetY = useRef(0);
+  const modulesOffsetY = useRef(0);
+  const pendingScrollToContent = useRef(false);
+
+  const scrollToSectionContent = (offsetY?: number) => {
+    const y = Math.max(0, (offsetY ?? contentOffsetY.current) - 8);
+    scrollRef.current?.scrollTo({
+      y,
+      animated: true,
+    });
+  };
+
+  const scrollToModules = () => {
+    scrollRef.current?.scrollTo({
+      y: Math.max(0, modulesOffsetY.current - 8),
+      animated: true,
+    });
+  };
+
+  const selectSection = (section: DashboardSection) => {
+    if (section === activeSection) {
+      scrollToSectionContent();
+      return;
+    }
+
+    pendingScrollToContent.current = true;
+    setActiveSection(section);
+  };
 
   const plan = useSubscriptionStore(
     (state) => state.plan,
@@ -245,6 +280,23 @@ export default function AnalyticsScreen() {
     });
   };
 
+  const openInsight = (insight: AnalyticsInsight) => {
+    if (
+      insight.serverId == null ||
+      insight.monitorId == null
+    ) {
+      return;
+    }
+
+    router.push({
+      pathname: "/monitor/[serverId]/[monitorId]",
+      params: {
+        serverId: insight.serverId,
+        monitorId: String(insight.monitorId),
+      },
+    });
+  };
+
   if (!serverId || !server) {
     return (
       <>
@@ -304,8 +356,9 @@ export default function AnalyticsScreen() {
           </Text>
           <Text style={styles.notFoundDescription}>
             Health Score, SLA, rankings, heatmap,
-            MTTR/MTBF, SSL, comparativas e insights
-            forman parte del Dashboard avanzado.
+            tendencias, MTTR/MTBF, SSL, comparativas
+            e insights forman parte del Dashboard
+            avanzado.
           </Text>
           <AppButton
             title="Volver"
@@ -330,7 +383,7 @@ export default function AnalyticsScreen() {
         }}
       />
 
-      <Screen scroll>
+      <Screen scroll scrollViewRef={scrollRef}>
         <View style={styles.header}>
           <Text style={styles.title}>
             Dashboard avanzado
@@ -361,7 +414,13 @@ export default function AnalyticsScreen() {
           </View>
         ) : null}
 
-        <View style={styles.moduleGrid}>
+        <View
+          style={styles.moduleGrid}
+          onLayout={(event) => {
+            modulesOffsetY.current =
+              event.nativeEvent.layout.y;
+          }}
+        >
           {DASHBOARD_SECTIONS.map((item) => {
             const selected = item.id === activeSection;
 
@@ -370,7 +429,7 @@ export default function AnalyticsScreen() {
                 key={item.id}
                 accessibilityRole="button"
                 accessibilityState={{ selected }}
-                onPress={() => setActiveSection(item.id)}
+                onPress={() => selectSection(item.id)}
                 style={({ pressed }) => [
                   styles.moduleButton,
                   selected
@@ -406,6 +465,39 @@ export default function AnalyticsScreen() {
           })}
         </View>
 
+        <View
+          onLayout={(event) => {
+            const nextY = event.nativeEvent.layout.y;
+            contentOffsetY.current = nextY;
+
+            if (!pendingScrollToContent.current) {
+              return;
+            }
+
+            pendingScrollToContent.current = false;
+            scrollToSectionContent(nextY);
+          }}
+        >
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Volver a la rejilla de módulos"
+          onPress={scrollToModules}
+          style={({ pressed }) => [
+            styles.backToModules,
+            styles.backToModulesTop,
+            pressed ? styles.backToModulesPressed : null,
+          ]}
+        >
+          <MaterialIcons
+            name="keyboard-arrow-up"
+            size={22}
+            color={colors.primary}
+          />
+          <Text style={styles.backToModulesText}>
+            Subir a módulos
+          </Text>
+        </Pressable>
+
         {activeSection === "health" ? (
         <Section title="Health Score">
           <HealthScoreCard
@@ -436,10 +528,11 @@ export default function AnalyticsScreen() {
         {activeSection === "latency" ? (
         <Section
           title="Latencia"
-          description="Media, picos, P95 y comparación con el periodo anterior"
+          description={getPreviousPeriodExplanation(window)}
         >
           <LatencyOverview
             latency={summary.latency}
+            window={window}
           />
         </Section>
         ) : null}
@@ -546,10 +639,11 @@ export default function AnalyticsScreen() {
         {activeSection === "comparatives" ? (
         <Section
           title="Comparativas"
-          description="Respecto al periodo anterior de la misma duración"
+          description={getPreviousPeriodExplanation(window)}
         >
           <ComparativeCards
             comparative={summary.comparative}
+            window={window}
           />
         </Section>
         ) : null}
@@ -659,16 +753,49 @@ export default function AnalyticsScreen() {
         </Section>
         ) : null}
 
-        {activeSection === "insights" ? (
+        {activeSection === "trends" ? (
         <Section
-          title="Insights"
-          description="Recomendaciones automáticas a partir de los datos locales"
+          title="Tendencias"
+          description={getPreviousPeriodExplanation(window)}
         >
-          <InsightsList
-            insights={summary.insights}
+          <TrendsOverview
+            trends={summary.trends}
+            window={window}
           />
         </Section>
         ) : null}
+
+        {activeSection === "insights" ? (
+        <Section
+          title="Insights"
+          description="Avisos automáticos: flapping, hotspots, SLA, latencia y mejoras"
+        >
+          <InsightsList
+            insights={summary.insights}
+            onPressInsight={openInsight}
+          />
+        </Section>
+        ) : null}
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Volver a la rejilla de módulos"
+          onPress={scrollToModules}
+          style={({ pressed }) => [
+            styles.backToModules,
+            pressed ? styles.backToModulesPressed : null,
+          ]}
+        >
+          <MaterialIcons
+            name="keyboard-arrow-up"
+            size={22}
+            color={colors.primary}
+          />
+          <Text style={styles.backToModulesText}>
+            Subir a módulos
+          </Text>
+        </Pressable>
+        </View>
       </Screen>
     </>
   );
@@ -763,7 +890,7 @@ const styles = StyleSheet.create({
     color: colors.background,
   },
   section: {
-    marginTop: spacing.xl,
+    marginTop: spacing.md,
     gap: spacing.md,
   },
   sectionHeader: {
@@ -783,6 +910,29 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: 16,
     padding: spacing.lg,
+  },
+  backToModules: {
+    marginTop: spacing.lg,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
+    minHeight: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  backToModulesTop: {
+    marginTop: spacing.xl,
+    marginBottom: spacing.xs,
+  },
+  backToModulesPressed: {
+    opacity: 0.7,
+  },
+  backToModulesText: {
+    ...typography.bodyMedium,
+    color: colors.primary,
   },
   emptyText: {
     ...typography.caption,

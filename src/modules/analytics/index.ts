@@ -11,6 +11,7 @@ export * from "@/src/modules/analytics/components/PriorityMonitorsList";
 export * from "@/src/modules/analytics/components/SlaOverview";
 export * from "@/src/modules/analytics/components/SslCertificatesList";
 export * from "@/src/modules/analytics/components/StatusDistributionCard";
+export * from "@/src/modules/analytics/components/TrendsOverview";
 export * from "@/src/modules/analytics/types/analytics";
 export * from "@/src/modules/analytics/utils/buildAdvancedMetrics";
 export * from "@/src/modules/analytics/utils/buildAnalyticsSummary";

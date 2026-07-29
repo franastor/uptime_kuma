@@ -15,6 +15,21 @@ export type InsightSeverity =
   | "warning"
   | "critical";
 
+export type InsightCategory =
+  | "health"
+  | "sla"
+  | "latency"
+  | "incidents"
+  | "pattern"
+  | "ssl"
+  | "improvement";
+
+export type TrendDirection =
+  | "improving"
+  | "worsening"
+  | "stable"
+  | "unknown";
+
 export type IncidentInterval = {
   serverId: string;
   monitorId: number;
@@ -96,8 +111,21 @@ export type SslCertificateItem = {
 export type AnalyticsInsight = {
   id: string;
   severity: InsightSeverity;
+  category: InsightCategory;
   title: string;
   description: string;
+  serverId?: string;
+  monitorId?: number;
+  monitorName?: string;
+};
+
+export type TrendSignal = {
+  id: string;
+  metric: string;
+  direction: TrendDirection;
+  label: string;
+  detail: string;
+  deltaLabel: string | null;
 };
 
 export type AvailabilityPoint = {
@@ -132,6 +160,7 @@ export type AnalyticsSummary = {
   comparative: PeriodComparative;
   sslCertificates: SslCertificateItem[];
   availabilityTrend: AvailabilityPoint[];
+  trends: TrendSignal[];
   insights: AnalyticsInsight[];
   hasLimitedHistory: boolean;
 };

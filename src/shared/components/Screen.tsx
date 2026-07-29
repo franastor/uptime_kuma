@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from "react";
+import type { PropsWithChildren, Ref } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -13,17 +13,20 @@ import { colors, spacing } from "@/src/shared/theme";
 type ScreenProps = PropsWithChildren<{
   scroll?: boolean;
   contentContainerStyle?: StyleProp<ViewStyle>;
+  scrollViewRef?: Ref<ScrollView>;
 }>;
 
 export function Screen({
   children,
   scroll = false,
   contentContainerStyle,
+  scrollViewRef,
 }: ScreenProps) {
   if (scroll) {
     return (
       <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
         <ScrollView
+          ref={scrollViewRef}
           contentContainerStyle={[
             styles.scrollContent,
             contentContainerStyle,

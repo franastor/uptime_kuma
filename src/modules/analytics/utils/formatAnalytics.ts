@@ -1,4 +1,5 @@
 import type {
+  AnalyticsWindow,
   InsightSeverity,
   SlaStatus,
 } from "@/src/modules/analytics/types/analytics";
@@ -173,6 +174,54 @@ export function getInsightColor(
       return colors.warning;
     default:
       return colors.info;
+  }
+}
+
+/** Etiqueta corta del periodo de comparación (misma duración justo antes). */
+export function getPreviousPeriodShortLabel(
+  window: AnalyticsWindow,
+): string {
+  switch (window) {
+    case "24h":
+      return "24 h previas";
+    case "7d":
+      return "7 d previos";
+    case "30d":
+      return "30 d previos";
+    case "90d":
+      return "90 d previos";
+  }
+}
+
+/** Frase natural: «las 24 h anteriores», «los 7 días anteriores», … */
+export function getPreviousPeriodLabel(
+  window: AnalyticsWindow,
+): string {
+  switch (window) {
+    case "24h":
+      return "las 24 h anteriores";
+    case "7d":
+      return "los 7 días anteriores";
+    case "30d":
+      return "los 30 días anteriores";
+    case "90d":
+      return "los 90 días anteriores";
+  }
+}
+
+/** Explicación completa del baseline usado en comparativas y tendencias. */
+export function getPreviousPeriodExplanation(
+  window: AnalyticsWindow,
+): string {
+  switch (window) {
+    case "24h":
+      return "Se compara con las 24 h justo anteriores (hace 24–48 h).";
+    case "7d":
+      return "Se compara con los 7 días justo anteriores (hace 7–14 días).";
+    case "30d":
+      return "Se compara con los 30 días justo anteriores (hace 30–60 días).";
+    case "90d":
+      return "Se compara con los 90 días justo anteriores (hace 90–180 días).";
   }
 }
 
