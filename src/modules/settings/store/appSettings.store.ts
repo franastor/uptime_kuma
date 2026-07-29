@@ -8,6 +8,10 @@ import {
   resolveSlaTarget,
   type AppSettings,
 } from "@/src/modules/settings/types/appSettings";
+import {
+  applyLocale,
+  type AppLocalePreference,
+} from "@/src/shared/i18n";
 
 const APP_SETTINGS_STORAGE_KEY =
   "kumapulse.app-settings.v2";
@@ -23,8 +27,23 @@ type AppSettingsState = AppSettings & {
     serverId: string,
     value: number,
   ) => void;
+  setLocale: (locale: AppLocalePreference) => void;
   clearServer: (serverId: string) => void;
 };
+
+function normalizeLocale(
+  value: unknown,
+): AppLocalePreference {
+  if (
+    value === "system" ||
+    value === "es" ||
+    value === "en"
+  ) {
+    return value;
+  }
+
+  return DEFAULT_APP_SETTINGS.locale;
+}
 
 function normalizeSlaMap(
   value: unknown,
@@ -73,6 +92,7 @@ function parseStoredSettings(
       slaTargetByServer: normalizeSlaMap(
         candidate.slaTargetByServer,
       ),
+      locale: normalizeLocale(candidate.locale),
     };
   }
 
@@ -86,6 +106,7 @@ function parseStoredSettings(
           candidate.slaTarget,
         ),
       },
+      locale: normalizeLocale(candidate.locale),
     };
   }
 
@@ -139,6 +160,8 @@ export const useAppSettingsStore =
         const settings =
           parseStoredSettings(parsed);
 
+        applyLocale(settings.locale);
+
         set({
           ...settings,
           hydrated: true,
@@ -148,6 +171,7 @@ export const useAppSettingsStore =
           persist(settings);
         }
       } catch {
+        applyLocale(DEFAULT_APP_SETTINGS.locale);
         set({ hydrated: true });
       }
     },
@@ -164,18 +188,36 @@ export const useAppSettingsStore =
         ...get().slaTargetByServer,
         [serverId]: slaTarget,
       };
+      const next = {
+        slaTargetByServer,
+        locale: get().locale,
+      };
 
       set({ slaTargetByServer });
-      persist({ slaTargetByServer });
+      persist(next);
+    },
+
+    setLocale: (locale) => {
+      applyLocale(locale);
+      const next = {
+        slaTargetByServer: get().slaTargetByServer,
+        locale,
+      };
+      set({ locale });
+      persist(next);
     },
 
     clearServer: (serverId) => {
-      const next = {
+      const nextMap = {
         ...get().slaTargetByServer,
       };
-      delete next[serverId];
+      delete nextMap[serverId];
+      const next = {
+        slaTargetByServer: nextMap,
+        locale: get().locale,
+      };
 
-      set({ slaTargetByServer: next });
-      persist({ slaTargetByServer: next });
+      set({ slaTargetByServer: nextMap });
+      persist(next);
     },
   }));

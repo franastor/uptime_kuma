@@ -1,12 +1,16 @@
 import { DEFAULT_SLA_TARGET } from "@/src/modules/analytics/types/analytics";
+import type { AppLocalePreference } from "@/src/shared/i18n";
 
 export type AppSettings = {
   /** Objetivo SLA por servidor (`serverId` → ratio 0–1). */
   slaTargetByServer: Record<string, number>;
+  /** Idioma de la UI: sistema, español o inglés. */
+  locale: AppLocalePreference;
 };
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   slaTargetByServer: {},
+  locale: "system",
 };
 
 /** Clave interna tras migrar el SLA global de v1. */

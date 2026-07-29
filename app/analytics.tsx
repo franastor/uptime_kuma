@@ -37,6 +37,11 @@ import {
   getAnalyticsWindowLabel,
 } from "@/src/modules/analytics/utils/buildAnalyticsSummary";
 import { getPreviousPeriodExplanation } from "@/src/modules/analytics/utils/formatAnalytics";
+import { ExportButton } from "@/src/modules/export/components/ExportButton";
+import {
+  ExportUnavailableError,
+  exportAnalyticsCsv,
+} from "@/src/modules/export";
 import { IncidentCard } from "@/src/modules/incidents/components/IncidentCard";
 import { getActiveIncidents } from "@/src/modules/incidents/utils/getActiveIncidents";
 import { useHeartbeatHistoryStore } from "@/src/modules/monitor/store/heartbeatHistory.store";
@@ -50,7 +55,9 @@ import { canUseFeature } from "@/src/modules/subscription/utils/feature-access";
 import { MonitorTimeline } from "@/src/modules/timeline/components/MonitorTimeline";
 import { useTimelineStore } from "@/src/modules/timeline/store/timeline.store";
 import { AppButton } from "@/src/shared/components/AppButton";
+import { ConfirmModal } from "@/src/shared/components/ConfirmModal";
 import { Screen } from "@/src/shared/components/Screen";
+import { useTranslation } from "@/src/shared/i18n/useTranslation";
 import {
   colors,
   spacing,
@@ -73,37 +80,39 @@ type DashboardSection =
   | "heatmap"
   | "activity"
   | "trends"
-  | "insights";
+  | "insights"
+  | "export";
 
 const DASHBOARD_SECTIONS: {
   id: DashboardSection;
-  label: string;
+  labelKey: string;
   icon: keyof typeof MaterialIcons.glyphMap;
 }[] = [
-  { id: "health", label: "Health Score", icon: "monitor-heart" },
-  { id: "summary", label: "Resumen", icon: "dashboard" },
-  { id: "availability", label: "Disponibilidad", icon: "show-chart" },
-  { id: "latency", label: "Latencia", icon: "speed" },
-  { id: "status", label: "Estados", icon: "donut-large" },
-  { id: "priority", label: "Prioritarios", icon: "priority-high" },
-  { id: "incidents", label: "Incidencias", icon: "error-outline" },
-  { id: "sla", label: "SLA", icon: "verified" },
-  { id: "comparatives", label: "Comparativas", icon: "compare-arrows" },
+  { id: "health", labelKey: "analytics.sections.health", icon: "monitor-heart" },
+  { id: "summary", labelKey: "analytics.sections.summary", icon: "dashboard" },
+  { id: "availability", labelKey: "analytics.sections.availability", icon: "show-chart" },
+  { id: "latency", labelKey: "analytics.sections.latency", icon: "speed" },
+  { id: "status", labelKey: "analytics.sections.status", icon: "donut-large" },
+  { id: "priority", labelKey: "analytics.sections.priority", icon: "priority-high" },
+  { id: "incidents", labelKey: "analytics.sections.incidents", icon: "error-outline" },
+  { id: "sla", labelKey: "analytics.sections.sla", icon: "verified" },
+  { id: "comparatives", labelKey: "analytics.sections.comparatives", icon: "compare-arrows" },
   {
     id: "availability-ranking",
-    label: "Ranking uptime",
+    labelKey: "analytics.sections.availabilityRanking",
     icon: "format-list-numbered",
   },
   {
     id: "latency-ranking",
-    label: "Ranking latencia",
+    labelKey: "analytics.sections.latencyRanking",
     icon: "network-check",
   },
-  { id: "ssl", label: "SSL", icon: "verified-user" },
-  { id: "heatmap", label: "Heatmap", icon: "grid-view" },
-  { id: "activity", label: "Actividad", icon: "timeline" },
-  { id: "trends", label: "Tendencias", icon: "insights" },
-  { id: "insights", label: "Insights", icon: "lightbulb" },
+  { id: "ssl", labelKey: "analytics.sections.ssl", icon: "verified-user" },
+  { id: "heatmap", labelKey: "analytics.sections.heatmap", icon: "grid-view" },
+  { id: "activity", labelKey: "analytics.sections.activity", icon: "timeline" },
+  { id: "trends", labelKey: "analytics.sections.trends", icon: "insights" },
+  { id: "insights", labelKey: "analytics.sections.insights", icon: "lightbulb" },
+  { id: "export", labelKey: "analytics.sections.export", icon: "file-download" },
 ];
 
 function Section({
@@ -135,6 +144,7 @@ function Section({
 }
 
 export default function AnalyticsScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{
     serverId?: string | string[];
   }>();
@@ -146,6 +156,13 @@ export default function AnalyticsScreen() {
     useState<AnalyticsWindow>("24h");
   const [activeSection, setActiveSection] =
     useState<DashboardSection>("health");
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<
+    string | null
+  >(null);
+  const [exportSuccess, setExportSuccess] = useState<
+    string | null
+  >(null);
   const scrollRef = useRef<ScrollView>(null);
   const contentOffsetY = useRef(0);
   const modulesOffsetY = useRef(0);
@@ -183,6 +200,7 @@ export default function AnalyticsScreen() {
     plan,
     "advanced-dashboard",
   );
+  const canExport = canUseFeature(plan, "data-export");
 
   const server = useServerStore((state) =>
     state.servers.find(
@@ -297,12 +315,50 @@ export default function AnalyticsScreen() {
     });
   };
 
+  const handleExportAnalytics = async () => {
+    if (!server) {
+      return;
+    }
+
+    if (!canExport) {
+      setExportError(
+        "La exportación CSV está incluida en Premium.",
+      );
+      return;
+    }
+
+    setExporting(true);
+    setExportError(null);
+    setExportSuccess(null);
+
+    try {
+      const saved = await exportAnalyticsCsv({
+        summary,
+        serverName: server.name,
+      });
+      setExportSuccess(
+        t("export.savedIn", {
+          filename: saved.filename,
+        }),
+      );
+    } catch (error) {
+      const message =
+        error instanceof ExportUnavailableError ||
+        error instanceof Error
+          ? error.message
+          : "No se pudo exportar el dashboard.";
+      setExportError(message);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (!serverId || !server) {
     return (
       <>
         <Stack.Screen
           options={{
-            title: "Dashboard avanzado",
+            title: t("analytics.title"),
             headerShown: true,
             headerStyle: {
               backgroundColor: colors.background,
@@ -313,15 +369,13 @@ export default function AnalyticsScreen() {
         />
         <Screen contentContainerStyle={styles.centered}>
           <Text style={styles.notFoundTitle}>
-            Elige un servidor
+            {t("analytics.chooseServer")}
           </Text>
           <Text style={styles.notFoundDescription}>
-            El dashboard avanzado solo tiene
-            sentido dentro de una instancia de
-            Uptime Kuma.
+            {t("analytics.chooseServerHint")}
           </Text>
           <AppButton
-            title="Volver"
+            title={t("common.back")}
             onPress={() => router.back()}
           />
         </Screen>
@@ -334,7 +388,7 @@ export default function AnalyticsScreen() {
       <>
         <Stack.Screen
           options={{
-            title: "Dashboard avanzado",
+            title: t("analytics.title"),
             headerShown: true,
             headerStyle: {
               backgroundColor: colors.background,
@@ -352,16 +406,13 @@ export default function AnalyticsScreen() {
             />
           </View>
           <Text style={styles.notFoundTitle}>
-            Función Premium
+            {t("analytics.premiumTitle")}
           </Text>
           <Text style={styles.notFoundDescription}>
-            Health Score, SLA, rankings, heatmap,
-            tendencias, MTTR/MTBF, SSL, comparativas
-            e insights forman parte del Dashboard
-            avanzado.
+            {t("analytics.premiumDescription")}
           </Text>
           <AppButton
-            title="Volver"
+            title={t("common.back")}
             onPress={() => router.back()}
           />
         </Screen>
@@ -373,7 +424,7 @@ export default function AnalyticsScreen() {
     <>
       <Stack.Screen
         options={{
-          title: "Dashboard avanzado",
+          title: t("analytics.title"),
           headerShown: true,
           headerStyle: {
             backgroundColor: colors.background,
@@ -386,7 +437,7 @@ export default function AnalyticsScreen() {
       <Screen scroll scrollViewRef={scrollRef}>
         <View style={styles.header}>
           <Text style={styles.title}>
-            Dashboard avanzado
+            {t("analytics.title")}
           </Text>
           <Text style={styles.subtitle}>
             {server.name} ·{" "}
@@ -458,7 +509,7 @@ export default function AnalyticsScreen() {
                   ]}
                   numberOfLines={1}
                 >
-                  {item.label}
+                  {t(item.labelKey)}
                 </Text>
               </Pressable>
             );
@@ -494,7 +545,7 @@ export default function AnalyticsScreen() {
             color={colors.primary}
           />
           <Text style={styles.backToModulesText}>
-            Subir a módulos
+            {t("analytics.backToModules")}
           </Text>
         </Pressable>
 
@@ -777,6 +828,31 @@ export default function AnalyticsScreen() {
         </Section>
         ) : null}
 
+        {activeSection === "export" ? (
+        <Section
+          title="Exportar"
+          description={`CSV de resumen y monitores · ventana ${getAnalyticsWindowLabel(window)}`}
+        >
+          <ExportButton
+            title={
+              canExport
+                ? t("analytics.exportCsv")
+                : t("analytics.exportCsvPremium")
+            }
+            description={
+              canExport
+                ? t("analytics.exportHint")
+                : t("analytics.exportPremiumHint")
+            }
+            locked={!canExport}
+            loading={exporting}
+            onPress={() => {
+              void handleExportAnalytics();
+            }}
+          />
+        </Section>
+        ) : null}
+
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Volver a la rejilla de módulos"
@@ -792,11 +868,35 @@ export default function AnalyticsScreen() {
             color={colors.primary}
           />
           <Text style={styles.backToModulesText}>
-            Subir a módulos
+            {t("analytics.backToModules")}
           </Text>
         </Pressable>
         </View>
       </Screen>
+
+      <ConfirmModal
+        visible={exportError != null}
+        title={
+          canExport
+            ? t("analytics.exportFailed")
+            : t("analytics.premiumTitle")
+        }
+        description={exportError ?? ""}
+        confirmLabel={t("common.understood")}
+        cancelLabel={null}
+        onConfirm={() => setExportError(null)}
+        onCancel={() => setExportError(null)}
+      />
+
+      <ConfirmModal
+        visible={exportSuccess != null}
+        title={t("analytics.exportSaved")}
+        description={exportSuccess ?? ""}
+        confirmLabel={t("common.understood")}
+        cancelLabel={null}
+        onConfirm={() => setExportSuccess(null)}
+        onCancel={() => setExportSuccess(null)}
+      />
     </>
   );
 }

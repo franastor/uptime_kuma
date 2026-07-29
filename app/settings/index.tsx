@@ -8,8 +8,10 @@ import {
   View,
 } from "react-native";
 
+import { LanguagePicker } from "@/src/modules/settings/components/LanguagePicker";
 import { useSubscriptionStore } from "@/src/modules/subscription/store/subscription.store";
 import { Screen } from "@/src/shared/components/Screen";
+import { useTranslation } from "@/src/shared/i18n/useTranslation";
 import {
   colors,
   spacing,
@@ -17,6 +19,7 @@ import {
 } from "@/src/shared/theme";
 
 export default function SettingsScreen() {
+  const { t, locale, setLocale } = useTranslation();
   const plan = useSubscriptionStore(
     (state) => state.plan,
   );
@@ -29,7 +32,7 @@ export default function SettingsScreen() {
     <>
       <Stack.Screen
         options={{
-          title: "Ajustes",
+          title: t("settings.title"),
           headerShown: true,
           headerStyle: {
             backgroundColor: colors.background,
@@ -42,13 +45,17 @@ export default function SettingsScreen() {
       <Screen scroll>
         <View style={styles.header}>
           <Text style={styles.title}>
-            Ajustes
+            {t("settings.title")}
           </Text>
           <Text style={styles.subtitle}>
-            Preferencias globales de la app en
-            este dispositivo
+            {t("settings.subtitle")}
           </Text>
         </View>
+
+        <LanguagePicker
+          value={locale}
+          onChange={setLocale}
+        />
 
         <Pressable
           accessibilityRole="button"
@@ -71,10 +78,10 @@ export default function SettingsScreen() {
           </View>
           <View style={styles.linkInfo}>
             <Text style={styles.linkTitle}>
-              Notificaciones
+              {t("settings.notifications")}
             </Text>
             <Text style={styles.linkDescription}>
-              Sonido, vibración y filtros
+              {t("settings.notificationsHint")}
             </Text>
           </View>
           <MaterialIcons
@@ -93,18 +100,16 @@ export default function SettingsScreen() {
                 color={colors.warning}
               />
               <Text style={styles.devBadge}>
-                SOLO DESARROLLO
+                {t("settings.devOnly")}
               </Text>
             </View>
             <View style={styles.devRow}>
               <View style={styles.linkInfo}>
                 <Text style={styles.linkTitle}>
-                  Plan Premium
+                  {t("settings.premiumPlan")}
                 </Text>
                 <Text style={styles.linkDescription}>
-                  Actívalo para probar el Dashboard
-                  avanzado. Desactívalo para ver el
-                  candado Free.
+                  {t("settings.premiumPlanHint")}
                 </Text>
               </View>
               <Switch
@@ -129,8 +134,7 @@ export default function SettingsScreen() {
         ) : null}
 
         <Text style={styles.hint}>
-          El objetivo SLA y otros ajustes de cada
-          instancia están dentro del servidor.
+          {t("settings.slaHint")}
         </Text>
       </Screen>
     </>
@@ -151,6 +155,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   linkCard: {
+    marginTop: spacing.lg,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,

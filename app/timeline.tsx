@@ -9,6 +9,14 @@ import {
 } from "react-native";
 
 import { kumaService } from "@/src/core/services/KumaService";
+import { ExportButton } from "@/src/modules/export/components/ExportButton";
+import {
+  ExportUnavailableError,
+  exportTimelineCsv,
+} from "@/src/modules/export";
+import { useServerStore } from "@/src/modules/servers/store/server.store";
+import { useSubscriptionStore } from "@/src/modules/subscription/store/subscription.store";
+import { canUseFeature } from "@/src/modules/subscription/utils/feature-access";
 import { TimelineEventCard } from "@/src/modules/timeline/components/TimelineEventCard";
 import { TimelineFilters } from "@/src/modules/timeline/components/TimelineFilters";
 import { MonitorTimeline } from "@/src/modules/timeline/components/MonitorTimeline";
@@ -17,12 +25,14 @@ import {
   filterTimelineEvents,
   type TimelineFilter,
 } from "@/src/modules/timeline/utils/filterTimelineEvents";
-import { useServerStore } from "@/src/modules/servers/store/server.store";
 import { AppButton } from "@/src/shared/components/AppButton";
+import { ConfirmModal } from "@/src/shared/components/ConfirmModal";
 import { Screen } from "@/src/shared/components/Screen";
+import { useTranslation } from "@/src/shared/i18n/useTranslation";
 import { colors, spacing, typography } from "@/src/shared/theme";
 
 export default function TimelineScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{
     serverId?: string | string[];
     monitorId?: string | string[];
@@ -54,6 +64,20 @@ export default function TimelineScreen() {
     useState<TimelineFilter>("all");
   const [refreshing, setRefreshing] =
     useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] =
+    useState(false);
+  const [exportError, setExportError] = useState<
+    string | null
+  >(null);
+  const [exportSuccess, setExportSuccess] = useState<
+    string | null
+  >(null);
+
+  const plan = useSubscriptionStore(
+    (state) => state.plan,
+  );
+  const canExport = canUseFeature(plan, "data-export");
 
   const hydrate = useTimelineStore(
     (state) => state.hydrate,
@@ -126,6 +150,45 @@ export default function TimelineScreen() {
     : server
       ? `Timeline · ${server.name}`
       : "Timeline";
+
+  const handleExport = async () => {
+    if (!server) {
+      return;
+    }
+
+    if (!canExport) {
+      setShowPremiumModal(true);
+      return;
+    }
+
+    setExporting(true);
+    setExportError(null);
+    setExportSuccess(null);
+
+    try {
+      const saved = await exportTimelineCsv({
+        events: visibleEvents,
+        serverName: server.name,
+        monitorName:
+          resolvedMonitorId != null
+            ? monitorNameParam ||
+              `monitor-${resolvedMonitorId}`
+            : null,
+      });
+      setExportSuccess(
+        t("export.savedIn", { filename: saved.filename }),
+      );
+    } catch (error) {
+      const message =
+        error instanceof ExportUnavailableError ||
+        error instanceof Error
+          ? error.message
+          : "No se pudo exportar el timeline.";
+      setExportError(message);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (!serverId || !server) {
     return (
@@ -202,6 +265,24 @@ export default function TimelineScreen() {
           {visibleEvents.length === 1 ? "" : "s"}
         </Text>
 
+        <ExportButton
+          title={
+            canExport
+              ? t("timeline.exportCsv")
+              : t("timeline.exportCsvPremium")
+          }
+          description={
+            canExport
+              ? t("timeline.exportHint")
+              : t("timeline.exportPremiumHint")
+          }
+          locked={!canExport}
+          loading={exporting}
+          onPress={() => {
+            void handleExport();
+          }}
+        />
+
         {!hydrated ? (
           <Text style={styles.emptyDescription}>
             Cargando timeline...
@@ -250,6 +331,36 @@ export default function TimelineScreen() {
           ))
         )}
       </Screen>
+
+      <ConfirmModal
+        visible={showPremiumModal}
+        title={t("common.premiumFeature")}
+        description={t("timeline.exportPremiumDescription")}
+        confirmLabel={t("common.understood")}
+        cancelLabel={null}
+        onConfirm={() => setShowPremiumModal(false)}
+        onCancel={() => setShowPremiumModal(false)}
+      />
+
+      <ConfirmModal
+        visible={exportError != null}
+        title={t("timeline.exportFailed")}
+        description={exportError ?? ""}
+        confirmLabel={t("common.understood")}
+        cancelLabel={null}
+        onConfirm={() => setExportError(null)}
+        onCancel={() => setExportError(null)}
+      />
+
+      <ConfirmModal
+        visible={exportSuccess != null}
+        title={t("timeline.exportSaved")}
+        description={exportSuccess ?? ""}
+        confirmLabel={t("common.understood")}
+        cancelLabel={null}
+        onConfirm={() => setExportSuccess(null)}
+        onCancel={() => setExportSuccess(null)}
+      />
     </>
   );
 }

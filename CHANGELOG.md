@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.8.8 — Multiidioma español / inglés
+
+- Selector de idioma en Ajustes: **Sistema**, **Español** o **English**, persistido en el dispositivo.
+- Infraestructura `expo-localization` + `i18n-js`; por defecto sigue el idioma del sistema (EN → inglés, resto → español).
+- Traducidas pantallas clave: Ajustes, filtros/lista de monitores, timeline (export), módulos del Dashboard avanzado y textos Premium comunes.
+
+## v0.8.7 — Paginación de monitores y filtro por tags
+
+- Lista de monitores con paginación («Cargar más», 20 por página) y contador «Mostrando X de Y».
+- Chips de etiquetas bajo los filtros: Premium (`advanced-filters`) puede filtrar por una o varias; Free ve candado + modal.
+- La búsqueda por texto también encuentra `nombre:valor` de etiquetas, no solo nombre o valor sueltos.
+
+## v0.8.6 — Exportación CSV Premium
+
+- Exportación a CSV detrás de la feature `data-export` (Premium).
+- En Timeline: guarda los eventos visibles según el filtro actual en `Documentos/exports` (sin sheet de compartir).
+- En Dashboard avanzado: nueva sección **Exportar** con resumen de la ventana + una fila por monitor.
+- CSV en UTF-8 con BOM (Ñ/acentos) y separador `;` para Excel en español; nombres de archivo con servidor, ventana y marca de tiempo.
+- Free ve el candado y un modal Premium; no se genera el archivo.
+
 ## v0.8.5 — Insights y tendencias profundas
 
 - Nueva sección **Tendencias** en el Dashboard avanzado: dirección de uptime, incidencias y latencia frente al periodo anterior, comparación 24 h vs 7 d, hotspot del heatmap y monitor más inestable.

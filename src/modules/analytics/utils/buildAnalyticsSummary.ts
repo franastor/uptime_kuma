@@ -603,6 +603,7 @@ export function buildAnalyticsSummary({
     ranking,
     latencyRanking,
     priorityMonitors,
+    monitors: activeMonitors,
     heatmap,
     healthScore,
     statusDistribution,

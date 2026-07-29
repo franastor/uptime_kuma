@@ -21,6 +21,11 @@ import {
 import { useMonitorPreferencesStore } from "@/src/modules/monitor/store/monitorPreferences.store";
 import { useMonitorStore } from "@/src/modules/monitor/store/monitor.store";
 import type { Monitor } from "@/src/modules/monitor/types/monitor";
+import {
+  collectAvailableTags,
+  matchesMonitorQuery,
+  matchesSelectedTags,
+} from "@/src/modules/monitor/utils/filterMonitors";
 import { formatHeartbeatDate } from "@/src/modules/monitor/utils/monitorPresentation";
 import { useServerStore } from "@/src/modules/servers/store/server.store";
 import { useSubscriptionStore } from "@/src/modules/subscription/store/subscription.store";
@@ -35,28 +40,11 @@ import { AppButton } from "@/src/shared/components/AppButton";
 import { ConfirmModal } from "@/src/shared/components/ConfirmModal";
 import { Screen } from "@/src/shared/components/Screen";
 import { StatCard } from "@/src/shared/components/StatCard";
+import { useTranslation } from "@/src/shared/i18n/useTranslation";
 import { colors, spacing, typography } from "@/src/shared/theme";
 
 const EMPTY_MONITORS: Monitor[] = [];
-
-function matchesQuery(monitor: Monitor, query: string): boolean {
-  const normalizedQuery = query.trim().toLocaleLowerCase("es-ES");
-
-  if (!normalizedQuery) {
-    return true;
-  }
-
-  const searchableValues = [
-    monitor.name,
-    monitor.target ?? "",
-    monitor.description ?? "",
-    ...monitor.tags.flatMap((tag) => [tag.name, tag.value ?? ""]),
-  ];
-
-  return searchableValues.some((value) =>
-    value.toLocaleLowerCase("es-ES").includes(normalizedQuery),
-  );
-}
+const MONITOR_PAGE_SIZE = 20;
 
 function matchesFilter(
   monitor: Monitor,
@@ -79,6 +67,7 @@ function matchesFilter(
 }
 
 export default function MonitorsScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{
     serverId?: string | string[];
     monitorId?: string | string[];
@@ -102,12 +91,19 @@ export default function MonitorsScreen() {
 
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<MonitorFilter>("all");
+  const [selectedTags, setSelectedTags] = useState<string[]>(
+    [],
+  );
+  const [page, setPage] = useState(1);
   const [highlightedMonitorId, setHighlightedMonitorId] =
     useState<number | null>(null);
   const [operationsExpanded, setOperationsExpanded] =
     useState(true);
   const [showPremiumModal, setShowPremiumModal] =
     useState(false);
+  const [premiumModalKind, setPremiumModalKind] = useState<
+    "monitors" | "tags" | "dashboard"
+  >("dashboard");
 
   const server = useServerStore((state) =>
     state.servers.find((item) => item.id === serverId),
@@ -137,6 +133,10 @@ export default function MonitorsScreen() {
   const toggleFavorite = useMonitorPreferencesStore(
     (state) => state.toggleFavorite,
   );
+  const canFilterByTags = canUseFeature(
+    plan,
+    "advanced-filters",
+  );
 
   useEffect(() => {
     void hydratePreferences();
@@ -149,6 +149,8 @@ export default function MonitorsScreen() {
 
     setFilter("all");
     setQuery("");
+    setSelectedTags([]);
+    setPage(1);
     setHighlightedMonitorId(resolvedFocusedMonitorId);
 
     const timeoutId = setTimeout(() => {
@@ -159,6 +161,18 @@ export default function MonitorsScreen() {
       clearTimeout(timeoutId);
     };
   }, [resolvedFocusedMonitorId]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, filter, selectedTags]);
+
+  useEffect(() => {
+    if (canFilterByTags) {
+      return;
+    }
+
+    setSelectedTags([]);
+  }, [canFilterByTags]);
 
   const favorites = useMemo(
     () =>
@@ -216,6 +230,11 @@ export default function MonitorsScreen() {
     allMonitors.length - planMonitors.length,
   );
 
+  const availableTags = useMemo(
+    () => collectAvailableTags(planMonitors),
+    [planMonitors],
+  );
+
   const summary = calculateDashboardSummary(planMonitors);
   const activeIncidents = useMemo(
     () => getActiveIncidents(planMonitors),
@@ -238,8 +257,12 @@ export default function MonitorsScreen() {
   const visibleMonitors = useMemo(() => {
     const filtered = planMonitors.filter(
       (monitor) =>
-        matchesQuery(monitor, query) &&
-        matchesFilter(monitor, filter, favorites),
+        matchesMonitorQuery(monitor, query) &&
+        matchesFilter(monitor, filter, favorites) &&
+        matchesSelectedTags(
+          monitor,
+          canFilterByTags ? selectedTags : [],
+        ),
     );
 
     if (resolvedFocusedMonitorId === null) {
@@ -258,12 +281,37 @@ export default function MonitorsScreen() {
       return 0;
     });
   }, [
+    canFilterByTags,
     favorites,
     filter,
     planMonitors,
     query,
     resolvedFocusedMonitorId,
+    selectedTags,
   ]);
+
+  const pagedMonitors = useMemo(
+    () =>
+      visibleMonitors.slice(0, page * MONITOR_PAGE_SIZE),
+    [page, visibleMonitors],
+  );
+  const hasMoreMonitors =
+    pagedMonitors.length < visibleMonitors.length;
+
+  function openPremiumModal(
+    kind: "monitors" | "tags" | "dashboard",
+  ) {
+    setPremiumModalKind(kind);
+    setShowPremiumModal(true);
+  }
+
+  function toggleTag(tag: string) {
+    setSelectedTags((current) =>
+      current.includes(tag)
+        ? current.filter((item) => item !== tag)
+        : [...current, tag],
+    );
+  }
 
   async function handleToggleFavorite(monitorId: number): Promise<void> {
     if (!serverId) {
@@ -274,8 +322,8 @@ export default function MonitorsScreen() {
 
     if (!isFavorite && !canAddFavorite(plan, favorites.length)) {
       Alert.alert(
-        "Límite de favoritos",
-        "La versión Free permite guardar hasta 3 favoritos por servidor. Premium ofrece favoritos ilimitados.",
+        t("monitors.favoritesLimitTitle"),
+        t("monitors.favoritesLimitDescription"),
       );
       return;
     }
@@ -293,14 +341,16 @@ export default function MonitorsScreen() {
   if (!serverId || !server) {
     return (
       <>
-        <Stack.Screen options={{ title: "Monitores" }} />
+        <Stack.Screen options={{ title: t("monitors.title") }} />
         <Screen contentContainerStyle={styles.centeredScreen}>
-          <Text style={styles.errorTitle}>Servidor no encontrado</Text>
+          <Text style={styles.errorTitle}>
+            {t("monitors.serverNotFound")}
+          </Text>
           <Text style={styles.errorDescription}>
-            No se ha podido localizar la instancia seleccionada.
+            {t("monitors.serverNotFoundHint")}
           </Text>
           <AppButton
-            title="Volver a servidores"
+            title={t("monitors.backToServers")}
             onPress={() => router.replace("/")}
           />
         </Screen>
@@ -315,7 +365,9 @@ export default function MonitorsScreen() {
       <Screen scroll>
         <View style={styles.header}>
           <View style={styles.headerInformation}>
-            <Text style={styles.title}>Monitores</Text>
+            <Text style={styles.title}>
+              {t("monitors.title")}
+            </Text>
             <Text style={styles.serverUrl} numberOfLines={1}>
               {server.url}
             </Text>
@@ -601,7 +653,7 @@ export default function MonitorsScreen() {
               }
               onPress={() => {
                 if (!hasAdvancedDashboard) {
-                  setShowPremiumModal(true);
+                  openPremiumModal("dashboard");
                   return;
                 }
 
@@ -683,9 +735,9 @@ export default function MonitorsScreen() {
             {lockedMonitorCount > 0 ? (
               <Pressable
                 accessibilityRole="button"
-                onPress={() =>
-                  setShowPremiumModal(true)
-                }
+              onPress={() =>
+                openPremiumModal("monitors")
+              }
                 style={({ pressed }) => [
                   styles.monitorLimitCard,
                   pressed
@@ -728,13 +780,32 @@ export default function MonitorsScreen() {
             <MonitorFilters
               query={query}
               filter={filter}
+              availableTags={availableTags}
+              selectedTags={selectedTags}
+              canFilterByTags={canFilterByTags}
               onQueryChange={setQuery}
               onFilterChange={setFilter}
+              onToggleTag={toggleTag}
+              onClearTags={() => setSelectedTags([])}
+              onRequestTagPremium={() =>
+                openPremiumModal("tags")
+              }
             />
 
             {visibleMonitors.length > 0 ? (
               <View style={styles.monitorList}>
-                {visibleMonitors.map((monitor) => (
+                <Text style={styles.listMeta}>
+                  {t("monitors.showing", {
+                    shown: pagedMonitors.length,
+                    total: visibleMonitors.length,
+                  })}
+                  {selectedTags.length > 0
+                    ? ` · ${t("monitors.tagsCount", {
+                        count: selectedTags.length,
+                      })}`
+                    : ""}
+                </Text>
+                {pagedMonitors.map((monitor) => (
                   <MonitorCard
                     key={monitor.id}
                     monitor={monitor}
@@ -760,6 +831,28 @@ export default function MonitorsScreen() {
                     }
                   />
                 ))}
+                {hasMoreMonitors ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() =>
+                      setPage((current) => current + 1)
+                    }
+                    style={({ pressed }) => [
+                      styles.loadMoreButton,
+                      pressed
+                        ? styles.loadMoreButtonPressed
+                        : null,
+                    ]}
+                  >
+                    <Text style={styles.loadMoreText}>
+                      {t("monitors.loadMore", {
+                        remaining:
+                          visibleMonitors.length -
+                          pagedMonitors.length,
+                      })}
+                    </Text>
+                  </Pressable>
+                ) : null}
               </View>
             ) : (
               <View style={styles.filteredEmptyCard}>
@@ -768,9 +861,11 @@ export default function MonitorsScreen() {
                   size={34}
                   color={colors.textMuted}
                 />
-                <Text style={styles.emptyTitle}>Sin resultados</Text>
+                <Text style={styles.emptyTitle}>
+                  {t("monitors.noResults")}
+                </Text>
                 <Text style={styles.emptyDescription}>
-                  Prueba con otra búsqueda o cambia el filtro seleccionado.
+                  {t("monitors.noResultsHint")}
                 </Text>
               </View>
             )}
@@ -780,15 +875,24 @@ export default function MonitorsScreen() {
 
       <ConfirmModal
         visible={showPremiumModal}
-        title="Función Premium"
+        title={t("common.premiumFeature")}
         description={
-          lockedMonitorCount > 0 && !hasAdvancedDashboard
-            ? `Free permite hasta ${FREE_MONITOR_LIMIT} monitores y el Dashboard avanzado. Premium desbloquea monitores ilimitados, Health Score, rankings, SLA, heatmap e insights.`
-            : lockedMonitorCount > 0
-              ? `Free permite hasta ${FREE_MONITOR_LIMIT} monitores por servidor. Premium desbloquea todos los monitores de esta instancia.`
-              : "Premium incluye Health Score, disponibilidad histórica, rankings, heatmap, SLA, MTTR/MTBF, SSL, comparativas e insights."
+          premiumModalKind === "tags"
+            ? t("monitors.tagPremiumDescription")
+            : premiumModalKind === "monitors" ||
+                (lockedMonitorCount > 0 &&
+                  !hasAdvancedDashboard)
+              ? lockedMonitorCount > 0 &&
+                !hasAdvancedDashboard
+                ? t("monitors.lockedDescription", {
+                    limit: FREE_MONITOR_LIMIT,
+                  })
+                : t("monitors.lockedDescription", {
+                    limit: FREE_MONITOR_LIMIT,
+                  })
+              : t("analytics.premiumDescription")
         }
-        confirmLabel="Entendido"
+        confirmLabel={t("common.understood")}
         cancelLabel={null}
         onConfirm={() => setShowPremiumModal(false)}
         onCancel={() => setShowPremiumModal(false)}
@@ -1090,6 +1194,27 @@ const styles = StyleSheet.create({
   },
   monitorList: {
     gap: spacing.md,
+  },
+  listMeta: {
+    ...typography.caption,
+    color: colors.textMuted,
+    fontWeight: "700",
+  },
+  loadMoreButton: {
+    minHeight: 48,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  loadMoreButtonPressed: {
+    opacity: 0.75,
+  },
+  loadMoreText: {
+    ...typography.bodyMedium,
+    color: colors.primary,
   },
   filteredEmptyCard: {
     alignItems: "center",

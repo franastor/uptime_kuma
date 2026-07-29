@@ -153,6 +153,8 @@ export type AnalyticsSummary = {
   ranking: MonitorAnalytics[];
   latencyRanking: MonitorAnalytics[];
   priorityMonitors: MonitorAnalytics[];
+  /** Monitores activos (no pausados) usados en el cálculo. */
+  monitors: MonitorAnalytics[];
   heatmap: HeatmapCell[];
   healthScore: number | null;
   statusDistribution: StatusDistribution;

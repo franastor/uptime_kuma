@@ -2,7 +2,7 @@
   "expo": {
     "name": "KumaPulse",
     "slug": "kumapulse",
-    "version": "0.8.5",
+    "version": "0.8.8",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "kumapulse",
@@ -46,6 +46,15 @@
         {
           "color": "#5CDD8B",
           "defaultChannel": "monitor-status"
+        }
+      ],
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": ["es", "en"],
+            "android": ["es", "en"]
+          }
         }
       ]
     ],
