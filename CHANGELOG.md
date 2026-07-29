@@ -31,3 +31,7 @@ npm run lint
 - Tarjetas de incidencia con mensaje, antigüedad y ping.
 - Estado saludable cuando no existen incidencias activas.
 - Protección adicional frente a promesas rechazadas durante la confirmación 2FA.
+
+
+## v0.6.1 Notification Foundation
+- Added notification architecture skeleton.
