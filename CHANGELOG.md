@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.6.2 — Sprint 11B.2: Smart Notifications MVP
+
+- Integración de notificaciones locales con heartbeats Socket.IO (`important` UP/DOWN).
+- Historial persistente de notificaciones (AsyncStorage, máx. 100).
+- Deduplicación de eventos repetidos.
+- Deep link al monitor: al pulsar se abre `/monitor/[serverId]` con resaltado.
+- Preferencias mínimas (`enabled`, default activo); UI avanzada en 11C.
+- Solo notificaciones locales (sin push remotas).
+- Dependencia `expo-notifications` y canal Android `monitor-status`.
+- Centro de operaciones expandible/colapsable.
+
+## v0.6.1 — Notification Foundation
+
+- Añadido el esqueleto de arquitectura de notificaciones.
+
 ## v0.6.0 — Sprint 11A: KumaPulse Branding
 
 - Renombrada la aplicación a **KumaPulse**.
@@ -31,7 +46,3 @@ npm run lint
 - Tarjetas de incidencia con mensaje, antigüedad y ping.
 - Estado saludable cuando no existen incidencias activas.
 - Protección adicional frente a promesas rechazadas durante la confirmación 2FA.
-
-
-## v0.6.1 Notification Foundation
-- Added notification architecture skeleton.

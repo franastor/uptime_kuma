@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Pressable,
   StyleSheet,
   Text,
   View,
@@ -75,13 +76,31 @@ function matchesFilter(
 export default function MonitorsScreen() {
   const params = useLocalSearchParams<{
     serverId?: string | string[];
+    monitorId?: string | string[];
   }>();
   const serverId = Array.isArray(params.serverId)
     ? params.serverId[0]
     : params.serverId;
+  const focusedMonitorIdRaw = Array.isArray(
+    params.monitorId,
+  )
+    ? params.monitorId[0]
+    : params.monitorId;
+  const focusedMonitorId = focusedMonitorIdRaw
+    ? Number(focusedMonitorIdRaw)
+    : null;
+  const resolvedFocusedMonitorId =
+    focusedMonitorId !== null &&
+    Number.isFinite(focusedMonitorId)
+      ? focusedMonitorId
+      : null;
 
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<MonitorFilter>("all");
+  const [highlightedMonitorId, setHighlightedMonitorId] =
+    useState<number | null>(null);
+  const [operationsExpanded, setOperationsExpanded] =
+    useState(true);
 
   const server = useServerStore((state) =>
     state.servers.find((item) => item.id === serverId),
@@ -111,6 +130,24 @@ export default function MonitorsScreen() {
     void hydratePreferences();
   }, [hydratePreferences]);
 
+  useEffect(() => {
+    if (resolvedFocusedMonitorId === null) {
+      return;
+    }
+
+    setFilter("all");
+    setQuery("");
+    setHighlightedMonitorId(resolvedFocusedMonitorId);
+
+    const timeoutId = setTimeout(() => {
+      setHighlightedMonitorId(null);
+    }, 8_000);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [resolvedFocusedMonitorId]);
+
   const favorites = useMemo(
     () =>
       serverId
@@ -125,15 +162,35 @@ export default function MonitorsScreen() {
     "advanced-dashboard",
   );
 
-  const visibleMonitors = useMemo(
-    () =>
-      monitors.filter(
-        (monitor) =>
-          matchesQuery(monitor, query) &&
-          matchesFilter(monitor, filter, favorites),
-      ),
-    [favorites, filter, monitors, query],
-  );
+  const visibleMonitors = useMemo(() => {
+    const filtered = monitors.filter(
+      (monitor) =>
+        matchesQuery(monitor, query) &&
+        matchesFilter(monitor, filter, favorites),
+    );
+
+    if (resolvedFocusedMonitorId === null) {
+      return filtered;
+    }
+
+    return [...filtered].sort((left, right) => {
+      if (left.id === resolvedFocusedMonitorId) {
+        return -1;
+      }
+
+      if (right.id === resolvedFocusedMonitorId) {
+        return 1;
+      }
+
+      return 0;
+    });
+  }, [
+    favorites,
+    filter,
+    monitors,
+    query,
+    resolvedFocusedMonitorId,
+  ]);
 
   async function handleToggleFavorite(monitorId: number): Promise<void> {
     if (!serverId) {
@@ -300,39 +357,101 @@ export default function MonitorsScreen() {
             </View>
 
             <View style={styles.operationsSection}>
-              <View style={styles.operationsHeader}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{
+                  expanded: operationsExpanded,
+                }}
+                onPress={() =>
+                  setOperationsExpanded(
+                    (current) => !current,
+                  )
+                }
+                style={({ pressed }) => [
+                  styles.operationsHeader,
+                  pressed
+                    ? styles.operationsHeaderPressed
+                    : null,
+                ]}
+              >
                 <View style={styles.dashboardTitleContainer}>
-                  <Text style={styles.sectionTitle}>Centro de operaciones</Text>
-                  <Text style={styles.sectionDescription}>
-                    Lo que necesita tu atención ahora mismo.
+                  <Text style={styles.sectionTitle}>
+                    Centro de operaciones
                   </Text>
+                  {!operationsExpanded ? (
+                    <Text style={styles.sectionDescription}>
+                      {activeIncidents.length > 0
+                        ? `${activeIncidents.length} incidencia${activeIncidents.length === 1 ? "" : "s"} activa${activeIncidents.length === 1 ? "" : "s"}`
+                        : "Sin incidencias activas"}
+                    </Text>
+                  ) : (
+                    <Text style={styles.sectionDescription}>
+                      Lo que necesita tu atención ahora mismo.
+                    </Text>
+                  )}
                 </View>
-                <View style={[styles.incidentCounter, activeIncidents.length === 0 && styles.incidentCounterHealthy]}>
-                  <Text style={[styles.incidentCounterText, activeIncidents.length === 0 && styles.incidentCounterHealthyText]}>
-                    {activeIncidents.length}
-                  </Text>
-                </View>
-              </View>
 
-              {activeIncidents.length > 0 ? (
-                <View style={styles.incidentList}>
-                  {activeIncidents.map((incident) => (
-                    <IncidentCard key={incident.monitor.id} incident={incident} />
-                  ))}
-                </View>
-              ) : (
-                <View style={styles.healthyCard}>
-                  <View style={styles.healthyIcon}>
-                    <MaterialIcons name="verified" size={26} color={colors.background} />
-                  </View>
-                  <View style={styles.healthyInformation}>
-                    <Text style={styles.healthyTitle}>Todo funciona correctamente</Text>
-                    <Text style={styles.healthyDescription}>
-                      No hay monitores caídos ni comprobaciones pendientes.
+                <View style={styles.operationsHeaderActions}>
+                  <View
+                    style={[
+                      styles.incidentCounter,
+                      activeIncidents.length === 0 &&
+                        styles.incidentCounterHealthy,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.incidentCounterText,
+                        activeIncidents.length === 0 &&
+                          styles.incidentCounterHealthyText,
+                      ]}
+                    >
+                      {activeIncidents.length}
                     </Text>
                   </View>
+                  <MaterialIcons
+                    name={
+                      operationsExpanded
+                        ? "expand-less"
+                        : "expand-more"
+                    }
+                    size={26}
+                    color={colors.textSecondary}
+                  />
                 </View>
-              )}
+              </Pressable>
+
+              {operationsExpanded ? (
+                activeIncidents.length > 0 ? (
+                  <View style={styles.incidentList}>
+                    {activeIncidents.map((incident) => (
+                      <IncidentCard
+                        key={incident.monitor.id}
+                        incident={incident}
+                      />
+                    ))}
+                  </View>
+                ) : (
+                  <View style={styles.healthyCard}>
+                    <View style={styles.healthyIcon}>
+                      <MaterialIcons
+                        name="verified"
+                        size={26}
+                        color={colors.background}
+                      />
+                    </View>
+                    <View style={styles.healthyInformation}>
+                      <Text style={styles.healthyTitle}>
+                        Todo funciona correctamente
+                      </Text>
+                      <Text style={styles.healthyDescription}>
+                        No hay monitores caídos ni comprobaciones
+                        pendientes.
+                      </Text>
+                    </View>
+                  </View>
+                )
+              ) : null}
             </View>
 
             {!hasAdvancedDashboard ? (
@@ -388,6 +507,10 @@ export default function MonitorsScreen() {
                   <MonitorCard
                     key={monitor.id}
                     monitor={monitor}
+                    highlighted={
+                      highlightedMonitorId ===
+                      monitor.id
+                    }
                     favorite={favorites.includes(monitor.id)}
                     onToggleFavorite={() =>
                       void handleToggleFavorite(monitor.id)
@@ -562,6 +685,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.md,
+  },
+  operationsHeaderPressed: {
+    opacity: 0.75,
+  },
+  operationsHeaderActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
   },
   incidentCounter: {
     minWidth: 36,

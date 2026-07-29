@@ -2,7 +2,7 @@
   "expo": {
     "name": "KumaPulse",
     "slug": "kumapulse",
-    "version": "0.6.0",
+    "version": "0.6.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "kumapulse",
@@ -40,7 +40,14 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "color": "#5CDD8B",
+          "defaultChannel": "monitor-status"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

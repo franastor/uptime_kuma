@@ -16,6 +16,7 @@ import { colors, spacing, typography } from "@/src/shared/theme";
 interface MonitorCardProps {
   monitor: Monitor;
   favorite: boolean;
+  highlighted?: boolean;
   onToggleFavorite: () => void;
   onPress?: () => void;
 }
@@ -23,6 +24,7 @@ interface MonitorCardProps {
 export function MonitorCard({
   monitor,
   favorite,
+  highlighted = false,
   onToggleFavorite,
   onPress,
 }: MonitorCardProps) {
@@ -34,6 +36,7 @@ export function MonitorCard({
       onPress={onPress}
       style={({ pressed }) => [
         styles.card,
+        highlighted ? styles.highlighted : null,
         pressed && onPress ? styles.pressed : null,
       ]}
     >
@@ -129,6 +132,11 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: 20,
     backgroundColor: colors.surface,
+  },
+  highlighted: {
+    borderColor: colors.primary,
+    borderWidth: 2,
+    backgroundColor: colors.surfaceElevated,
   },
   pressed: {
     opacity: 0.82,

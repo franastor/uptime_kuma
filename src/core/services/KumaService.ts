@@ -22,6 +22,8 @@ import type {
 
 import { normalizeMonitor } from "@/src/modules/monitor/utils/normalizeMonitor";
 
+import { notificationManager } from "@/src/notifications";
+
 export type ConnectToKumaOptions = {
   twoFactorToken?: string;
 };
@@ -260,6 +262,30 @@ class KumaService {
                 heartbeat.important,
             },
           );
+
+        const monitor = useMonitorStore
+          .getState()
+          .monitorsByServer[serverId]
+          ?.find(
+            (item) =>
+              item.id ===
+              heartbeat.monitorID,
+          );
+
+        if (!monitor) {
+          return;
+        }
+
+        void notificationManager.handleStatusChange(
+          {
+            serverId,
+            monitor,
+            heartbeatAt:
+              heartbeat.time,
+            important:
+              heartbeat.important,
+          },
+        );
       },
     );
 
