@@ -13,6 +13,7 @@ import {
 import { useMonitorStore } from "@/src/modules/monitor/store/monitor.store";
 import { useHeartbeatHistoryStore } from "@/src/modules/monitor/store/heartbeatHistory.store";
 import { useMonitorStatsStore } from "@/src/modules/monitor/store/monitorStats.store";
+import { useAppSettingsStore } from "@/src/modules/settings/store/appSettings.store";
 import { useTimelineStore } from "@/src/modules/timeline/store/timeline.store";
 
 import type {
@@ -348,6 +349,9 @@ export const useServerStore =
         .getState()
         .clearServer(serverId);
       useMonitorStatsStore
+        .getState()
+        .clearServer(serverId);
+      useAppSettingsStore
         .getState()
         .clearServer(serverId);
 

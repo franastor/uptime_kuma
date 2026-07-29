@@ -8,6 +8,7 @@ export type PremiumFeature =
   | "push-notifications"
   | "mobile-widgets"
   | "unlimited-servers"
+  | "unlimited-monitors"
   | "custom-themes"
   | "data-export";
 

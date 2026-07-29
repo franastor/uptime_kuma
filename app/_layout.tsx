@@ -9,6 +9,7 @@ import {
 import { useMonitorStore } from "@/src/modules/monitor/store/monitor.store";
 import { useHeartbeatHistoryStore } from "@/src/modules/monitor/store/heartbeatHistory.store";
 import { useMonitorStatsStore } from "@/src/modules/monitor/store/monitorStats.store";
+import { useAppSettingsStore } from "@/src/modules/settings/store/appSettings.store";
 import { useSubscriptionStore } from "@/src/modules/subscription/store/subscription.store";
 import { useTimelineStore } from "@/src/modules/timeline/store/timeline.store";
 import {
@@ -56,6 +57,7 @@ export default function RootLayout() {
     void useMonitorStatsStore
       .getState()
       .hydrate();
+    void useAppSettingsStore.getState().hydrate();
   }, []);
 
   useEffect(() => {

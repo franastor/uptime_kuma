@@ -7,7 +7,10 @@ import type {
 } from "@/src/modules/subscription/types/subscription";
 
 const STORAGE_KEY = "kuma.subscription.plan";
-const DEFAULT_PLAN: SubscriptionPlan = "free";
+/** En desarrollo partimos de Premium para probar el Dashboard avanzado. */
+const DEFAULT_PLAN: SubscriptionPlan = __DEV__
+  ? "premium"
+  : "free";
 
 function isSubscriptionPlan(
   value: string | null,
@@ -27,14 +30,27 @@ export const useSubscriptionStore =
 
     hydrate: async () => {
       try {
-        const storedPlan = await AsyncStorage.getItem(
-          STORAGE_KEY,
-        );
+        const storedPlan =
+          await AsyncStorage.getItem(STORAGE_KEY);
+
+        if (isSubscriptionPlan(storedPlan)) {
+          set({
+            plan: storedPlan,
+            hydrated: true,
+          });
+          return;
+        }
+
+        // Primera carga en desarrollo: Premium por defecto.
+        if (__DEV__) {
+          await AsyncStorage.setItem(
+            STORAGE_KEY,
+            "premium",
+          );
+        }
 
         set({
-          plan: isSubscriptionPlan(storedPlan)
-            ? storedPlan
-            : DEFAULT_PLAN,
+          plan: DEFAULT_PLAN,
           hydrated: true,
         });
       } catch {

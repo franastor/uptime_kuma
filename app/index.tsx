@@ -589,9 +589,9 @@ export default function ServersScreen() {
 
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Timeline de actividad"
+            accessibilityLabel="Ajustes"
             onPress={() =>
-              router.push("/timeline")
+              router.push("/settings")
             }
             style={({ pressed }) => [
               styles.settingsButton,
@@ -601,29 +601,7 @@ export default function ServersScreen() {
             ]}
           >
             <MaterialIcons
-              name="timeline"
-              size={22}
-              color={colors.primary}
-            />
-          </Pressable>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Ajustes de notificaciones"
-            onPress={() =>
-              router.push(
-                "/settings/notifications",
-              )
-            }
-            style={({ pressed }) => [
-              styles.settingsButton,
-              pressed
-                ? styles.settingsButtonPressed
-                : null,
-            ]}
-          >
-            <MaterialIcons
-              name="notifications-active"
+              name="settings"
               size={22}
               color={colors.primary}
             />

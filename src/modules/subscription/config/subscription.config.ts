@@ -5,6 +5,7 @@ import type {
 
 export const FREE_SERVER_LIMIT = 1;
 export const FREE_FAVORITE_LIMIT = 3;
+export const FREE_MONITOR_LIMIT = 10;
 
 export const PLAN_FEATURES: Record<
   SubscriptionPlan,
@@ -19,6 +20,7 @@ export const PLAN_FEATURES: Record<
     "push-notifications",
     "mobile-widgets",
     "unlimited-servers",
+    "unlimited-monitors",
     "custom-themes",
     "data-export",
   ]),

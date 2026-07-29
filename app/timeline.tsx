@@ -18,6 +18,7 @@ import {
   type TimelineFilter,
 } from "@/src/modules/timeline/utils/filterTimelineEvents";
 import { useServerStore } from "@/src/modules/servers/store/server.store";
+import { AppButton } from "@/src/shared/components/AppButton";
 import { Screen } from "@/src/shared/components/Screen";
 import { colors, spacing, typography } from "@/src/shared/theme";
 
@@ -63,40 +64,30 @@ export default function TimelineScreen() {
   const events = useTimelineStore(
     (state) => state.events,
   );
+  const server = useServerStore((state) =>
+    state.servers.find(
+      (item) => item.id === serverId,
+    ),
+  );
 
   useEffect(() => {
     void hydrate();
   }, [hydrate]);
 
   useEffect(() => {
+    if (!serverId) {
+      return;
+    }
+
     let cancelled = false;
 
     async function refresh(): Promise<void> {
       setRefreshing(true);
 
       try {
-        if (serverId) {
-          await kumaService.refreshTimelineHistory(
-            serverId,
-            resolvedMonitorId,
-          );
-          return;
-        }
-
-        const connectedServers =
-          useServerStore
-            .getState()
-            .servers.filter((server) =>
-              kumaService.isConnected(server.id),
-            );
-
-        await Promise.all(
-          connectedServers.map((server) =>
-            kumaService.refreshTimelineHistory(
-              server.id,
-              null,
-            ),
-          ),
+        await kumaService.refreshTimelineHistory(
+          serverId!,
+          resolvedMonitorId,
         );
       } finally {
         if (!cancelled) {
@@ -132,9 +123,40 @@ export default function TimelineScreen() {
   const title = resolvedMonitorId
     ? monitorNameParam ||
       `Monitor ${resolvedMonitorId}`
-    : serverId
-      ? "Timeline del servidor"
+    : server
+      ? `Timeline · ${server.name}`
       : "Timeline";
+
+  if (!serverId || !server) {
+    return (
+      <>
+        <Stack.Screen
+          options={{
+            title: "Timeline",
+            headerShown: true,
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
+            headerTintColor: colors.text,
+            headerShadowVisible: false,
+          }}
+        />
+        <Screen contentContainerStyle={styles.centered}>
+          <Text style={styles.notFoundTitle}>
+            Elige un servidor
+          </Text>
+          <Text style={styles.notFoundDescription}>
+            El timeline solo tiene sentido dentro
+            de una instancia de Uptime Kuma.
+          </Text>
+          <AppButton
+            title="Volver"
+            onPress={() => router.back()}
+          />
+        </Screen>
+      </>
+    );
+  }
 
   return (
     <>
@@ -152,9 +174,8 @@ export default function TimelineScreen() {
 
       <Screen scroll>
         <Text style={styles.description}>
-          Historial en caché local, actualizado en
-          segundo plano con los eventos importantes de
-          Uptime Kuma.
+          Historial de {server.name}, en caché
+          local y actualizado en segundo plano.
         </Text>
 
         {refreshing ? (
@@ -198,40 +219,35 @@ export default function TimelineScreen() {
             <Text style={styles.emptyDescription}>
               {refreshing
                 ? "Estamos pidiendo el histórico a Uptime Kuma..."
-                : "Conéctate al servidor para rellenar la caché. Luego los eventos se mostrarán al instante."}
+                : "Cuando haya cambios importantes de estado aparecerán aquí."}
             </Text>
           </View>
+        ) : resolvedMonitorId ? (
+          <View style={styles.timelineCard}>
+            <MonitorTimeline
+              events={visibleEvents}
+              limit={40}
+            />
+          </View>
         ) : (
-          resolvedMonitorId !== null ? (
-            <View style={styles.timelineCard}>
-              <MonitorTimeline
-                events={visibleEvents}
-                limit={visibleEvents.length}
-              />
-            </View>
-          ) : (
-            <View style={styles.list}>
-              {visibleEvents.map((event) => (
-                <TimelineEventCard
-                  key={event.id}
-                  event={event}
-                  onPress={() => {
-                    router.push({
-                      pathname:
-                        "/monitor/[serverId]/[monitorId]",
-                      params: {
-                        serverId:
-                          event.serverId,
-                        monitorId: String(
-                          event.monitorId,
-                        ),
-                      },
-                    });
-                  }}
-                />
-              ))}
-            </View>
-          )
+          visibleEvents.map((event) => (
+            <TimelineEventCard
+              key={event.id}
+              event={event}
+              onPress={() => {
+                router.push({
+                  pathname:
+                    "/monitor/[serverId]/[monitorId]",
+                  params: {
+                    serverId: event.serverId,
+                    monitorId: String(
+                      event.monitorId,
+                    ),
+                  },
+                });
+              }}
+            />
+          ))
         )}
       </Screen>
     </>
@@ -239,11 +255,25 @@ export default function TimelineScreen() {
 }
 
 const styles = StyleSheet.create({
-  description: {
+  centered: {
+    flexGrow: 1,
+    justifyContent: "center",
+    gap: spacing.lg,
+  },
+  notFoundTitle: {
+    ...typography.heading,
+    color: colors.text,
+    textAlign: "center",
+  },
+  notFoundDescription: {
     ...typography.body,
     color: colors.textSecondary,
-    marginBottom: spacing.lg,
-    lineHeight: 22,
+    textAlign: "center",
+  },
+  description: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
   },
   refreshRow: {
     flexDirection: "row",
@@ -258,37 +288,31 @@ const styles = StyleSheet.create({
   count: {
     ...typography.caption,
     color: colors.textMuted,
-    marginTop: spacing.md,
     marginBottom: spacing.md,
-  },
-  list: {
-    gap: spacing.sm,
-  },
-  timelineCard: {
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 20,
-    backgroundColor: colors.surface,
   },
   emptyCard: {
     alignItems: "center",
-    gap: spacing.md,
-    padding: spacing.xxl,
+    gap: spacing.sm,
+    padding: spacing.xl,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 20,
     backgroundColor: colors.surface,
   },
   emptyTitle: {
     ...typography.bodyMedium,
     color: colors.text,
-    textAlign: "center",
   },
   emptyDescription: {
     ...typography.caption,
     color: colors.textMuted,
     textAlign: "center",
-    lineHeight: 18,
+  },
+  timelineCard: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 16,
+    padding: spacing.lg,
   },
 });

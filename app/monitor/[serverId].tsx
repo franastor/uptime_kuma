@@ -27,8 +27,12 @@ import { useSubscriptionStore } from "@/src/modules/subscription/store/subscript
 import {
   canAddFavorite,
   canUseFeature,
+  FREE_MONITOR_LIMIT,
+  getMonitorLimit,
+  limitMonitorsForPlan,
 } from "@/src/modules/subscription/utils/feature-access";
 import { AppButton } from "@/src/shared/components/AppButton";
+import { ConfirmModal } from "@/src/shared/components/ConfirmModal";
 import { Screen } from "@/src/shared/components/Screen";
 import { StatCard } from "@/src/shared/components/StatCard";
 import { colors, spacing, typography } from "@/src/shared/theme";
@@ -102,6 +106,8 @@ export default function MonitorsScreen() {
     useState<number | null>(null);
   const [operationsExpanded, setOperationsExpanded] =
     useState(true);
+  const [showPremiumModal, setShowPremiumModal] =
+    useState(false);
 
   const server = useServerStore((state) =>
     state.servers.find((item) => item.id === serverId),
@@ -161,8 +167,60 @@ export default function MonitorsScreen() {
         : [],
     [favoriteIdsByServer, serverId],
   );
-  const summary = calculateDashboardSummary(monitors);
-  const activeIncidents = useMemo(() => getActiveIncidents(monitors), [monitors]);
+
+  const allMonitors = monitors;
+  const planMonitors = useMemo(() => {
+    const limited = limitMonitorsForPlan(
+      allMonitors,
+      plan,
+      favorites,
+    );
+
+    if (resolvedFocusedMonitorId === null) {
+      return limited;
+    }
+
+    const focused = allMonitors.find(
+      (monitor) =>
+        monitor.id === resolvedFocusedMonitorId,
+    );
+
+    if (
+      !focused ||
+      limited.some(
+        (monitor) => monitor.id === focused.id,
+      )
+    ) {
+      return limited;
+    }
+
+    const limit = getMonitorLimit(plan) ?? limited.length;
+
+    return [
+      focused,
+      ...limited
+        .filter(
+          (monitor) => monitor.id !== focused.id,
+        )
+        .slice(0, Math.max(0, limit - 1)),
+    ];
+  }, [
+    allMonitors,
+    favorites,
+    plan,
+    resolvedFocusedMonitorId,
+  ]);
+
+  const lockedMonitorCount = Math.max(
+    0,
+    allMonitors.length - planMonitors.length,
+  );
+
+  const summary = calculateDashboardSummary(planMonitors);
+  const activeIncidents = useMemo(
+    () => getActiveIncidents(planMonitors),
+    [planMonitors],
+  );
   const connected =
     server?.connectionStatus === "connected";
   const summaryDescription = connected
@@ -178,7 +236,7 @@ export default function MonitorsScreen() {
   );
 
   const visibleMonitors = useMemo(() => {
-    const filtered = monitors.filter(
+    const filtered = planMonitors.filter(
       (monitor) =>
         matchesQuery(monitor, query) &&
         matchesFilter(monitor, filter, favorites),
@@ -202,7 +260,7 @@ export default function MonitorsScreen() {
   }, [
     favorites,
     filter,
-    monitors,
+    planMonitors,
     query,
     resolvedFocusedMonitorId,
   ]);
@@ -287,6 +345,30 @@ export default function MonitorsScreen() {
               />
             </Pressable>
 
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Ajustes del servidor"
+              onPress={() =>
+                router.push({
+                  pathname:
+                    "/monitor/[serverId]/settings",
+                  params: {
+                    serverId,
+                  },
+                })
+              }
+              style={({ pressed }) => [
+                styles.timelineButton,
+                pressed ? styles.timelineButtonPressed : null,
+              ]}
+            >
+              <MaterialIcons
+                name="settings"
+                size={22}
+                color={colors.primary}
+              />
+            </Pressable>
+
             <View style={styles.connectionBadge}>
               <View
                 style={[
@@ -359,7 +441,11 @@ export default function MonitorsScreen() {
                 label="Monitores"
                 value={summary.total}
                 icon="monitor"
-                helper="Total configurados"
+                helper={
+                  lockedMonitorCount > 0
+                    ? `${allMonitors.length} en total · Free máx. ${FREE_MONITOR_LIMIT}`
+                    : "Total configurados"
+                }
               />
               <StatCard
                 label="Operativos"
@@ -506,30 +592,78 @@ export default function MonitorsScreen() {
               ) : null}
             </View>
 
-            {!hasAdvancedDashboard ? (
-              <View style={styles.premiumCard}>
-                <View style={styles.premiumIcon}>
-                  <MaterialIcons
-                    name="workspace-premium"
-                    size={24}
-                    color={colors.background}
-                  />
-                </View>
-                <View style={styles.premiumInformation}>
-                  <Text style={styles.premiumTitle}>Dashboard avanzado</Text>
-                  <Text style={styles.premiumDescription}>
-                    Premium añadirá históricos, tendencias, disponibilidad y
-                    comparativas.
-                  </Text>
-                </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={
+                hasAdvancedDashboard
+                  ? "Abrir dashboard avanzado"
+                  : "Dashboard avanzado Premium"
+              }
+              onPress={() => {
+                if (!hasAdvancedDashboard) {
+                  setShowPremiumModal(true);
+                  return;
+                }
+
+                router.push({
+                  pathname: "/analytics",
+                  params: {
+                    serverId,
+                  },
+                });
+              }}
+              style={({ pressed }) => [
+                styles.premiumCard,
+                pressed ? styles.premiumCardPressed : null,
+              ]}
+            >
+              <View style={styles.premiumIcon}>
+                <MaterialIcons
+                  name={
+                    hasAdvancedDashboard
+                      ? "insights"
+                      : "workspace-premium"
+                  }
+                  size={24}
+                  color={colors.background}
+                />
               </View>
-            ) : null}
+              <View style={styles.premiumInformation}>
+                <Text style={styles.premiumTitle}>
+                  Dashboard avanzado
+                </Text>
+                <Text style={styles.premiumDescription}>
+                  {hasAdvancedDashboard
+                    ? "SLA, rankings, heatmap, MTTR/MTBF y analítica de esta instancia."
+                    : "Health Score, analítica, rankings, SLA, heatmap e insights — disponible en Premium."}
+                </Text>
+              </View>
+              <MaterialIcons
+                name={
+                  hasAdvancedDashboard
+                    ? "chevron-right"
+                    : "lock"
+                }
+                size={20}
+                color={
+                  hasAdvancedDashboard
+                    ? colors.primary
+                    : colors.warning
+                }
+              />
+            </Pressable>
 
             <View style={styles.listHeader}>
               <View>
-                <Text style={styles.sectionTitle}>Todos los monitores</Text>
+                <Text style={styles.sectionTitle}>
+                  {lockedMonitorCount > 0
+                    ? "Monitores Free"
+                    : "Todos los monitores"}
+                </Text>
                 <Text style={styles.sectionDescription}>
-                  {visibleMonitors.length} de {monitors.length} visibles
+                  {lockedMonitorCount > 0
+                    ? `${visibleMonitors.length} visibles · ${planMonitors.length}/${FREE_MONITOR_LIMIT} Free · ${allMonitors.length} totales`
+                    : `${visibleMonitors.length} de ${planMonitors.length} visibles`}
                 </Text>
               </View>
 
@@ -545,6 +679,51 @@ export default function MonitorsScreen() {
                 </Text>
               </View>
             </View>
+
+            {lockedMonitorCount > 0 ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() =>
+                  setShowPremiumModal(true)
+                }
+                style={({ pressed }) => [
+                  styles.monitorLimitCard,
+                  pressed
+                    ? styles.premiumCardPressed
+                    : null,
+                ]}
+              >
+                <View style={styles.premiumIcon}>
+                  <MaterialIcons
+                    name="lock"
+                    size={22}
+                    color={colors.background}
+                  />
+                </View>
+                <View style={styles.premiumInformation}>
+                  <Text style={styles.premiumTitle}>
+                    {lockedMonitorCount} monitor
+                    {lockedMonitorCount === 1
+                      ? ""
+                      : "es"}{" "}
+                    bloqueado
+                    {lockedMonitorCount === 1
+                      ? ""
+                      : "s"}
+                  </Text>
+                  <Text style={styles.premiumDescription}>
+                    Free permite hasta {FREE_MONITOR_LIMIT}{" "}
+                    monitores. Premium desbloquea
+                    todos los de esta instancia.
+                  </Text>
+                </View>
+                <MaterialIcons
+                  name="workspace-premium"
+                  size={20}
+                  color={colors.warning}
+                />
+              </Pressable>
+            ) : null}
 
             <MonitorFilters
               query={query}
@@ -598,6 +777,22 @@ export default function MonitorsScreen() {
           </View>
         ) : null}
       </Screen>
+
+      <ConfirmModal
+        visible={showPremiumModal}
+        title="Función Premium"
+        description={
+          lockedMonitorCount > 0 && !hasAdvancedDashboard
+            ? `Free permite hasta ${FREE_MONITOR_LIMIT} monitores y el Dashboard avanzado. Premium desbloquea monitores ilimitados, Health Score, rankings, SLA, heatmap e insights.`
+            : lockedMonitorCount > 0
+              ? `Free permite hasta ${FREE_MONITOR_LIMIT} monitores por servidor. Premium desbloquea todos los monitores de esta instancia.`
+              : "Premium incluye Health Score, disponibilidad histórica, rankings, heatmap, SLA, MTTR/MTBF, SSL, comparativas e insights."
+        }
+        confirmLabel="Entendido"
+        cancelLabel={null}
+        onConfirm={() => setShowPremiumModal(false)}
+        onCancel={() => setShowPremiumModal(false)}
+      />
     </>
   );
 }
@@ -835,6 +1030,20 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.primary,
+    borderRadius: 18,
+    backgroundColor: colors.surfaceElevated,
+  },
+  premiumCardPressed: {
+    opacity: 0.8,
+  },
+  monitorLimitCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    marginBottom: spacing.md,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.warning,
     borderRadius: 18,
     backgroundColor: colors.surfaceElevated,
   },

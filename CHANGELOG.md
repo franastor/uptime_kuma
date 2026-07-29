@@ -1,5 +1,47 @@
 # Changelog
 
+## v0.8.4 — Dashboard avanzado completo (PDF)
+
+- El Dashboard avanzado Premium cubre ya los bloques de la propuesta: Health Score, disponibilidad 24 h/7 d/30 d/90 d, latencia (media, pico, P95), monitores prioritarios, incidencias activas, distribución por estado, rankings (disponibilidad y latencia), actividad reciente, SSL, comparativas e insights.
+- Ventana de 90 días añadida al selector.
+- Latencia y comparativas usan heartbeats locales + timeline para el periodo anterior.
+- Free: máximo **10 monitores** por servidor en orden alfabético; el resto queda bloqueado hasta Premium.
+- Navegación modular dentro del Dashboard avanzado: cada bloque es un botón y solo se muestra la sección elegida, evitando una pantalla excesivamente larga.
+- Sigue bloqueado detrás de `advanced-dashboard` (Premium).
+
+## v0.8.3 — Dashboard avanzado como Premium
+
+- SLA, rankings, heatmap, MTTR/MTBF y el resto de Analytics pasan a formar parte del **Dashboard avanzado** (feature `advanced-dashboard`).
+- En Free el acceso muestra candado / pantalla Premium; el resumen, timeline, incidencias y monitores siguen libres.
+- La tarjeta «Dashboard avanzado» del servidor es la entrada: en Premium abre la analítica; en Free queda bloqueada con el modal de la app.
+- En desarrollo (`__DEV__`) el plan por defecto es Premium; en Ajustes hay un interruptor Free/Premium para probar ambos modos.
+- El objetivo SLA en ajustes del servidor también queda detrás de Premium.
+
+## v0.8.2 — Corrección del estado SLA
+
+- Superar el objetivo ya cuenta como cumplido: con objetivo 99 % un uptime del 99,7 % deja de marcarse como incumplido.
+- «En riesgo» pasa a basarse en el presupuesto de error (avisa al consumir el 75 % del margen permitido) en lugar de un umbral fijo a medio camino de 100 %.
+- El estado del resumen se calcula con el uptime medio contra el objetivo, no con el peor monitor.
+- Los monitores por debajo del objetivo siguen listándose aparte, ahora con su propio encabezado.
+
+## v0.8.1 — Objetivo SLA configurable
+
+- El objetivo SLA se configura **dentro de cada servidor** (Ajustes del servidor), no en los ajustes globales.
+- Ruleta de presets 95 % … 100 % por instancia.
+- Analytics evalúa cada monitor contra el umbral de su servidor.
+- Timeline, Analytics y ajustes del servidor solo se abren desde dentro de una instancia.
+- Los ajustes globales de la app siguen en el engranaje del listado (notificaciones hoy; más adelante el resto).
+- Al borrar un servidor se elimina también su objetivo SLA.
+
+## v0.8.0 — Sprint 13: Analytics
+
+- Nueva pantalla Analytics con resumen de uptime, downtime, incidencias, ping medio, MTTR, MTBF y SLA (objetivo 99.9 %).
+- Selector de ventana 24 h / 7 días / 30 días y filtro por servidor.
+- Heatmap de caídas por día de la semana y hora local, reconstruido desde el timeline.
+- Ranking de monitores inestables (downtime, incidencias, uptime) con acceso al detalle.
+- Uptime y ping medio priorizan las estadísticas oficiales de Uptime Kuma; MTTR/MTBF y heatmap usan el histórico local.
+- Acceso desde la lista de servidores y desde el dashboard de cada servidor.
+
 ## v0.7.3 — Disponibilidad por tramos
 
 - La cuadrícula de disponibilidad ya no dibuja un bloque por heartbeat, sino tramos de tiempo, de modo que una caída de hace horas sigue siendo visible.
