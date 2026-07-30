@@ -36,10 +36,14 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     marginBottom: spacing.lg,
   },
-  mark: { width: 116, height: 92 },
-  compactMark: { width: 64, height: 52 },
+  mark: { width: 96, height: 96 },
+  compactMark: { width: 56, height: 56 },
   copy: { alignItems: "center", gap: spacing.xs },
   name: { ...typography.title, color: colors.text, letterSpacing: -0.8 },
   compactName: { fontSize: 24, lineHeight: 28 },
-  tagline: { ...typography.caption, color: colors.textSecondary, textAlign: "center" },
+  tagline: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    textAlign: "center",
+  },
 });

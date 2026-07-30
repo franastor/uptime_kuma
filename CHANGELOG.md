@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.9.1 — Logo transparente
+
+- Sustituido el mark/icono por la versión sin fondo (canal alfa) en UI, favicon, splash y adaptive icon foreground.
+- Ajuste del `BrandHeader` a proporciones cuadradas del nuevo mark.
+
 ## v0.9.0 — Vault local, biometría y backup de servidores
 
 - **Vault local**: contraseña maestra opcional (hash en SecureStore) para bloquear la app al arrancar o tras un tiempo en segundo plano.
