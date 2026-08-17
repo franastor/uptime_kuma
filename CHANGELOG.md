@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.9.2 — Informes Excel Premium
+
+- Analytics deja de exportar un CSV técnico y genera un `.xlsx` con cinco hojas: resumen ejecutivo, monitores/ranking, tendencias/insights, SLA/SSL y heatmap de downtime.
+- El resumen incluye KPIs legibles, comparativa contra el periodo anterior y distribución visual de estados.
+- Timeline genera un `.xlsx` con resumen de actividad por monitor y una hoja filtrable con el detalle de eventos.
+- Los porcentajes y métricas se mantienen como valores numéricos editables; los informes incluyen estilos, filtros, filas congeladas, barras visuales y heatmap.
+- Informes localizados en español/inglés y guardados en Descargas como el resto de exportaciones.
+
 ## v0.9.1 — Logo transparente
 
 - Sustituido el mark/icono por la versión sin fondo (canal alfa) en UI, favicon, splash y adaptive icon foreground.

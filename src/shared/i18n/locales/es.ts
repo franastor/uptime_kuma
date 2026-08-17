@@ -183,16 +183,16 @@ export const es = {
     historyOf: "Historial de %{name}, en caché local y actualizado en segundo plano.",
     refreshing: "Actualizando histórico...",
     eventsCount: "%{count} eventos",
-    exportCsv: "Exportar CSV",
-    exportCsvPremium: "Exportar CSV · Premium",
+    exportCsv: "Exportar informe Excel",
+    exportCsvPremium: "Exportar Excel · Premium",
     exportHint:
-      "Guarda los eventos visibles con el filtro actual",
+      "Informe con resumen, actividad por monitor y eventos visibles",
     exportPremiumHint:
-      "La exportación CSV está incluida en Premium",
+      "El informe Excel está incluido en Premium",
     exportPremiumDescription:
-      "Exportar el timeline a CSV está incluido en Premium. En Free puedes consultar el historial, pero no descargarlo.",
+      "Exportar el timeline como informe Excel está incluido en Premium. En Free puedes consultar el historial, pero no descargarlo.",
     exportFailed: "No se pudo exportar",
-    exportSaved: "CSV guardado",
+    exportSaved: "Informe Excel guardado",
     loading: "Cargando timeline...",
     emptyTitle: "Sin eventos todavía",
   },
@@ -208,14 +208,14 @@ export const es = {
       "Parte de las métricas se estiman con el histórico local. Con pocos eventos el periodo puede ser incompleto.",
     backToModules: "Subir a módulos",
     exportTitle: "Exportar",
-    exportCsv: "Exportar analytics CSV",
+    exportCsv: "Exportar informe Excel",
     exportCsvPremium: "Exportar · Premium",
     exportHint:
-      "Guarda métricas globales y una fila por monitor",
+      "Excel con resumen, monitores, tendencias, SLA/SSL y heatmap",
     exportPremiumHint:
-      "La exportación CSV está incluida en Premium",
+      "El informe Excel está incluido en Premium",
     exportFailed: "No se pudo exportar",
-    exportSaved: "CSV guardado",
+    exportSaved: "Informe Excel guardado",
     sections: {
       health: "Health Score",
       summary: "Resumen",

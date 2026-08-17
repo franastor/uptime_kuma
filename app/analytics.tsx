@@ -40,7 +40,7 @@ import { getPreviousPeriodExplanation } from "@/src/modules/analytics/utils/form
 import { ExportButton } from "@/src/modules/export/components/ExportButton";
 import {
   ExportUnavailableError,
-  exportAnalyticsCsv,
+  exportAnalyticsExcel,
 } from "@/src/modules/export";
 import { IncidentCard } from "@/src/modules/incidents/components/IncidentCard";
 import { getActiveIncidents } from "@/src/modules/incidents/utils/getActiveIncidents";
@@ -144,7 +144,7 @@ function Section({
 }
 
 export default function AnalyticsScreen() {
-  const { t } = useTranslation();
+  const { t, resolvedLocale } = useTranslation();
   const params = useLocalSearchParams<{
     serverId?: string | string[];
   }>();
@@ -322,7 +322,7 @@ export default function AnalyticsScreen() {
 
     if (!canExport) {
       setExportError(
-        "La exportación CSV está incluida en Premium.",
+        t("analytics.exportPremiumHint"),
       );
       return;
     }
@@ -332,9 +332,10 @@ export default function AnalyticsScreen() {
     setExportSuccess(null);
 
     try {
-      const saved = await exportAnalyticsCsv({
+      const saved = await exportAnalyticsExcel({
         summary,
         serverName: server.name,
+        locale: resolvedLocale,
       });
       setExportSuccess(
         t("export.savedIn", {
@@ -830,8 +831,8 @@ export default function AnalyticsScreen() {
 
         {activeSection === "export" ? (
         <Section
-          title="Exportar"
-          description={`CSV de resumen y monitores · ventana ${getAnalyticsWindowLabel(window)}`}
+          title={t("analytics.exportTitle")}
+          description={`${t("analytics.exportHint")} · ${getAnalyticsWindowLabel(window)}`}
         >
           <ExportButton
             title={

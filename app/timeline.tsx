@@ -12,7 +12,7 @@ import { kumaService } from "@/src/core/services/KumaService";
 import { ExportButton } from "@/src/modules/export/components/ExportButton";
 import {
   ExportUnavailableError,
-  exportTimelineCsv,
+  exportTimelineExcel,
 } from "@/src/modules/export";
 import { useServerStore } from "@/src/modules/servers/store/server.store";
 import { useSubscriptionStore } from "@/src/modules/subscription/store/subscription.store";
@@ -32,7 +32,7 @@ import { useTranslation } from "@/src/shared/i18n/useTranslation";
 import { colors, spacing, typography } from "@/src/shared/theme";
 
 export default function TimelineScreen() {
-  const { t } = useTranslation();
+  const { t, resolvedLocale } = useTranslation();
   const params = useLocalSearchParams<{
     serverId?: string | string[];
     monitorId?: string | string[];
@@ -166,9 +166,10 @@ export default function TimelineScreen() {
     setExportSuccess(null);
 
     try {
-      const saved = await exportTimelineCsv({
+      const saved = await exportTimelineExcel({
         events: visibleEvents,
         serverName: server.name,
+        locale: resolvedLocale,
         monitorName:
           resolvedMonitorId != null
             ? monitorNameParam ||

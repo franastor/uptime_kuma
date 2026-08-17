@@ -75,6 +75,7 @@ async function saveWithSaf(input: {
   filename: string;
   contents: string;
   mimeType: string;
+  encoding?: EncodingType;
 }): Promise<SavedPublicFile> {
   const filename = sanitizeFilename(input.filename);
   let directoryUri = await getCachedSafDirectoryUri();
@@ -92,7 +93,7 @@ async function saveWithSaf(input: {
       );
 
     await writeAsStringAsync(fileUri, input.contents, {
-      encoding: EncodingType.UTF8,
+      encoding: input.encoding ?? EncodingType.UTF8,
     });
 
     return {
@@ -114,7 +115,7 @@ async function saveWithSaf(input: {
         );
 
       await writeAsStringAsync(fileUri, input.contents, {
-        encoding: EncodingType.UTF8,
+        encoding: input.encoding ?? EncodingType.UTF8,
       });
 
       return {
@@ -132,10 +133,11 @@ async function saveWithSaf(input: {
   }
 }
 
-function saveToAppDocuments(input: {
+async function saveToAppDocuments(input: {
   filename: string;
   contents: string;
-}): SavedPublicFile {
+  encoding?: EncodingType;
+}): Promise<SavedPublicFile> {
   const filename = sanitizeFilename(input.filename);
   const exportsDir = new Directory(
     Paths.document,
@@ -148,7 +150,14 @@ function saveToAppDocuments(input: {
 
   const file = new File(exportsDir, filename);
   file.create({ overwrite: true });
-  file.write(input.contents);
+
+  if (input.encoding === EncodingType.Base64) {
+    await writeAsStringAsync(file.uri, input.contents, {
+      encoding: EncodingType.Base64,
+    });
+  } else {
+    file.write(input.contents);
+  }
 
   return {
     filename,
@@ -172,7 +181,38 @@ export async function savePublicTextFile(input: {
   }
 
   try {
-    return saveToAppDocuments(input);
+    return await saveToAppDocuments(input);
+  } catch {
+    throw new ExportUnavailableError(
+      "No se pudo guardar el archivo en el dispositivo",
+    );
+  }
+}
+
+/**
+ * Guarda contenido binario codificado en base64.
+ * Android usa la carpeta pública elegida por SAF; iOS usa Documents/exports.
+ */
+export async function savePublicBase64File(input: {
+  filename: string;
+  base64: string;
+  mimeType: string;
+}): Promise<SavedPublicFile> {
+  if (Platform.OS === "android") {
+    return saveWithSaf({
+      filename: input.filename,
+      contents: input.base64,
+      mimeType: input.mimeType,
+      encoding: EncodingType.Base64,
+    });
+  }
+
+  try {
+    return await saveToAppDocuments({
+      filename: input.filename,
+      contents: input.base64,
+      encoding: EncodingType.Base64,
+    });
   } catch {
     throw new ExportUnavailableError(
       "No se pudo guardar el archivo en el dispositivo",
