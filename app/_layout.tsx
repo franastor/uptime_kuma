@@ -20,6 +20,7 @@ import {
   notificationService,
   type NotificationDeepLinkData,
 } from "@/src/notifications";
+import { registerPushToken } from "@/src/notifications/PushRegistration";
 import { ConfirmModal } from "@/src/shared/components/ConfirmModal";
 import { colors } from "@/src/shared/theme";
 
@@ -123,6 +124,9 @@ export default function RootLayout() {
         setShowPermissionModal(
           state === "undetermined",
         );
+        if (state === "granted") {
+          void registerPushToken();
+        }
       })
       .catch(() => {
         setShowPermissionModal(false);
@@ -154,7 +158,11 @@ export default function RootLayout() {
     setRequestingPermission(true);
 
     try {
-      await notificationService.requestPermissions();
+      const granted =
+        await notificationService.requestPermissions();
+      if (granted) {
+        void registerPushToken();
+      }
     } catch {
       // The native prompt can be unavailable in
       // unsupported clients such as Expo Go.

@@ -152,6 +152,38 @@ export default function ServerSettingsScreen() {
           </View>
         )}
 
+        <View style={styles.pushCard}>
+          <View style={styles.pushHeader}>
+            <MaterialIcons
+              name="notifications-active"
+              size={20}
+              color={colors.primary}
+            />
+            <Text style={styles.pushTitle}>
+              Push / Webhook
+            </Text>
+          </View>
+          <Text style={styles.pushDescription}>
+            Para recibir avisos con la app cerrada,
+            usa este ID de servidor en la URL del
+            webhook de Uptime Kuma:
+          </Text>
+          <View style={styles.pushIdRow}>
+            <Text
+              style={styles.pushId}
+              selectable
+              numberOfLines={1}
+            >
+              {server.id}
+            </Text>
+          </View>
+          <Text style={styles.pushHint}>
+            URL: http://192.168.1.18:5830/api/webhook/
+            {"<serverId>"} — mantén pulsado el ID para
+            copiarlo.
+          </Text>
+        </View>
+
         <View style={styles.hint}>
           <MaterialIcons
             name="info-outline"
@@ -252,5 +284,50 @@ const styles = StyleSheet.create({
     ...typography.caption,
     flex: 1,
     color: colors.textMuted,
+  },
+  pushCard: {
+    marginTop: spacing.lg,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 16,
+    padding: spacing.lg,
+    gap: spacing.sm,
+  },
+  pushHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  pushTitle: {
+    ...typography.bodyMedium,
+    color: colors.text,
+    fontWeight: "800",
+  },
+  pushDescription: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    lineHeight: 18,
+  },
+  pushIdRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceElevated,
+  },
+  pushId: {
+    ...typography.caption,
+    flex: 1,
+    color: colors.primary,
+    fontFamily: "monospace",
+  },
+  pushHint: {
+    ...typography.caption,
+    color: colors.textMuted,
+    lineHeight: 18,
   },
 });

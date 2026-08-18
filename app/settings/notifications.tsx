@@ -170,9 +170,9 @@ export default function NotificationSettingsScreen() {
 
       <Screen scroll>
         <Text style={styles.intro}>
-          Ajustes para avisos locales mientras la
-          app está abierta. En segundo plano o
-          cerrada todavía no llegan.
+          Avisos locales en primer plano y push
+          remoto con la app cerrada (UP/DOWN),
+          con deduplicación y filtros.
         </Text>
 
         {loading ? (
