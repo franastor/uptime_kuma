@@ -5,8 +5,13 @@ import { notificationService } from "@/src/notifications/NotificationService";
 
 // Backend kumapulse-push (contenedor en el homelab de Fran).
 // La APP_KEY solo permite registrar tokens, nunca enviar push.
-export const PUSH_BACKEND_URL = "http://192.168.1.18:5830";
-export const PUSH_BACKEND_APP_KEY = "REEMPLAZAR_CON_APP_KEY";
+// Se leen del .env de la app (EXPO_PUBLIC_*). Ver .env.example.
+const envUrl = process.env.EXPO_PUBLIC_PUSH_BACKEND_URL;
+const envKey = process.env.EXPO_PUBLIC_PUSH_APP_KEY;
+
+export const PUSH_BACKEND_URL =
+  envUrl || "http://192.168.1.18:5830";
+export const PUSH_BACKEND_APP_KEY = envKey || "";
 
 // projectId de EAS (app.json → extra.eas.projectId)
 const EAS_PROJECT_ID = "f62f86d9-9d8c-439a-87c4-3c8a3920dc27";
