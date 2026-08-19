@@ -2,6 +2,7 @@ import { Stack, router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
+  Linking,
   Pressable,
   StyleSheet,
   Switch,
@@ -18,6 +19,8 @@ import {
   saveNotificationPreferences,
   type NotificationPreferences,
 } from "@/src/notifications";
+import { notificationService } from "@/src/notifications/NotificationService";
+import { registerPushToken } from "@/src/notifications/PushRegistration";
 import { AppButton } from "@/src/shared/components/AppButton";
 import { Screen } from "@/src/shared/components/Screen";
 import { colors, spacing, typography } from "@/src/shared/theme";
@@ -40,6 +43,10 @@ export default function NotificationSettingsScreen() {
     );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [pushPermission, setPushPermission] =
+    useState<"granted" | "denied" | "undetermined">(
+      "undetermined",
+    );
 
   const availableTags = useMemo(() => {
     const tags = new Set<string>();
@@ -71,6 +78,13 @@ export default function NotificationSettingsScreen() {
       .finally(() => {
         setLoading(false);
       });
+  }, []);
+
+  useEffect(() => {
+    void notificationService
+      .getPermissionState()
+      .then(setPushPermission)
+      .catch(() => setPushPermission("denied"));
   }, []);
 
   function updatePreference<
@@ -122,6 +136,17 @@ export default function NotificationSettingsScreen() {
           : [...current.selectedTags, tagName],
       };
     });
+  }
+
+  async function handleEnablePush(): Promise<void> {
+    const granted =
+      await notificationService.requestPermissions();
+    const state =
+      await notificationService.getPermissionState();
+    setPushPermission(state);
+    if (granted) {
+      void registerPushToken();
+    }
   }
 
   async function handleSave(): Promise<void> {
@@ -181,6 +206,32 @@ export default function NotificationSettingsScreen() {
           </Text>
         ) : (
           <View style={styles.content}>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                Notificaciones push
+              </Text>
+              <Text style={styles.sectionDescription}>
+                {pushPermission === "granted"
+                  ? "Activadas: recibirás avisos de tus monitores con la app cerrada."
+                  : "Actívalas para recibir avisos de tus monitores con la app cerrada."}
+              </Text>
+              {pushPermission === "granted" ? (
+                <AppButton
+                  title="Ajustes del sistema (desactivar)"
+                  onPress={() => {
+                    void Linking.openSettings();
+                  }}
+                />
+              ) : (
+                <AppButton
+                  title="Activar notificaciones push"
+                  onPress={() => {
+                    void handleEnablePush();
+                  }}
+                />
+              )}
+            </View>
+
             <View style={styles.section}>
               <PreferenceSwitch
                 title="Avisos activos"
