@@ -1,4 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
+import Constants from "expo-constants";
 import { router } from "expo-router";
 import {
   useEffect,
@@ -585,6 +586,15 @@ export default function ServersScreen() {
               Selecciona una instancia
               de Uptime Kuma.
             </Text>
+
+            <Text
+              style={styles.versionText}
+            >
+              Versión{" "}
+              {Constants.expoConfig
+                ?.version ??
+                "?"}
+            </Text>
           </View>
 
           <Pressable
@@ -1117,6 +1127,12 @@ const styles = StyleSheet.create({
   description: {
     ...typography.body,
     color: colors.textSecondary,
+  },
+
+  versionText: {
+    ...typography.caption,
+    color: colors.textMuted,
+    marginTop: spacing.xs,
   },
 
   content: {
