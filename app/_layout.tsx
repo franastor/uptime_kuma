@@ -11,11 +11,13 @@ import { useMonitorStore } from "@/src/modules/monitor/store/monitor.store";
 import { useHeartbeatHistoryStore } from "@/src/modules/monitor/store/heartbeatHistory.store";
 import { useMonitorPreferencesStore } from "@/src/modules/monitor/store/monitorPreferences.store";
 import { useMonitorStatsStore } from "@/src/modules/monitor/store/monitorStats.store";
+import { useServerStore } from "@/src/modules/servers/store/server.store";
 import { useAppSettingsStore } from "@/src/modules/settings/store/appSettings.store";
 import { useSubscriptionStore } from "@/src/modules/subscription/store/subscription.store";
 import { useTimelineStore } from "@/src/modules/timeline/store/timeline.store";
 import { VaultLockOverlay } from "@/src/modules/vault/components/VaultLockOverlay";
 import { useVaultStore } from "@/src/modules/vault/store/vault.store";
+import { kumaService } from "@/src/core/services/KumaService";
 import {
   notificationService,
   type NotificationDeepLinkData,
@@ -35,6 +37,34 @@ function navigateFromNotification(
       monitorId: String(data.monitorId),
     },
   });
+}
+
+function reconnectActiveServer(): Promise<void> {
+  const { servers, activeServerId } =
+    useServerStore.getState();
+
+  if (!activeServerId) {
+    return Promise.resolve();
+  }
+
+  const server = servers.find(
+    (item) => item.id === activeServerId,
+  );
+
+  if (
+    !server ||
+    kumaService.isConnected(server.id)
+  ) {
+    return Promise.resolve();
+  }
+
+  return kumaService
+    .connect(server.id)
+    .then(() => undefined)
+    .catch(() => {
+      // Silencioso: si requiere 2FA o credenciales,
+      // el usuario pulsa el servidor como siempre.
+    });
 }
 
 export default function RootLayout() {
@@ -104,6 +134,7 @@ export default function RootLayout() {
           nextState === "active"
         ) {
           maybeLockFromTimeout(lockTimeoutMinutes);
+          void reconnectActiveServer();
         }
       },
     );

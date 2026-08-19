@@ -234,10 +234,33 @@ export default function ServersScreen() {
   useEffect(() => {
     if (!hydrated) {
       void hydrate();
+      return;
+    }
+
+    // Auto-conexión al arrancar: si hay servidor activo y no está
+    // conectado, conectar solo (sin navegar, sin modales).
+    // Si requiere 2FA o credenciales, falla en silencio y el usuario
+    // pulsa el servidor como siempre.
+    if (activeServerId) {
+      const server = servers.find(
+        (item) => item.id === activeServerId,
+      );
+      if (
+        server &&
+        !kumaService.isConnected(server.id)
+      ) {
+        void kumaService
+          .connect(server.id)
+          .catch(() => {
+            // Silencioso: el estado de conexión lo gestiona KumaService.
+          });
+      }
     }
   }, [
     hydrate,
     hydrated,
+    activeServerId,
+    servers,
   ]);
 
   useEffect(() => {
