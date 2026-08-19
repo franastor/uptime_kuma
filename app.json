@@ -51,7 +51,10 @@
         "expo-notifications",
         {
           "color": "#5CDD8B",
-          "defaultChannel": "monitor-status"
+          "defaultChannel": "monitor-status",
+          "android": {
+            "googleServicesFile": "./google-services.json"
+          }
         }
       ],
       [
