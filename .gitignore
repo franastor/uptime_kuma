@@ -46,7 +46,6 @@ yarn-error.*
 !.env.example
 
 # Firebase / credenciales móviles (NUNCA subir)
-google-services.json
 GoogleService-Info.plist
 *-firebase*.json
 *firebase-adminsdk*.json
