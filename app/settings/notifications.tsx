@@ -10,7 +10,10 @@ import {
   View,
 } from "react-native";
 
+import { useAccountStore } from "@/src/modules/account/store/account.store";
 import { useMonitorStore } from "@/src/modules/monitor/store/monitor.store";
+import { useServerStore } from "@/src/modules/servers/store/server.store";
+
 import { useSubscriptionStore } from "@/src/modules/subscription/store/subscription.store";
 import { canUseFeature } from "@/src/modules/subscription/utils/feature-access";
 import {
@@ -20,7 +23,10 @@ import {
   type NotificationPreferences,
 } from "@/src/notifications";
 import { notificationService } from "@/src/notifications/NotificationService";
-import { registerPushToken } from "@/src/notifications/PushRegistration";
+import {
+  PUSH_BACKEND_URL,
+  registerPushToken,
+} from "@/src/notifications/PushRegistration";
 import { AppButton } from "@/src/shared/components/AppButton";
 import { Screen } from "@/src/shared/components/Screen";
 import { colors, spacing, typography } from "@/src/shared/theme";
@@ -29,6 +35,19 @@ export default function NotificationSettingsScreen() {
   const plan = useSubscriptionStore(
     (state) => state.plan,
   );
+  const session = useAccountStore(
+    (state) => state.session,
+  );
+  const activeServerId = useServerStore(
+    (state) => state.activeServerId,
+  );
+  const servers = useServerStore(
+    (state) => state.servers,
+  );
+
+  const activeServer = servers.find(
+    (s) => s.id === activeServerId,
+  ) ?? servers[0];
   const monitorsByServer = useMonitorStore(
     (state) => state.monitorsByServer,
   );
@@ -240,6 +259,73 @@ export default function NotificationSettingsScreen() {
             </View>
 
             <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                Configurar en tu Uptime Kuma
+              </Text>
+              <Text style={styles.sectionDescription}>
+                Para recibir avisos con la app cerrada, tu
+                instancia de Uptime Kuma debe enviar los
+                cambios de estado a KumaPulse:
+              </Text>
+
+              {!session ? (
+                <View style={styles.guideBox}>
+                  <Text style={styles.guideText}>
+                    1. Crea una cuenta desde Ajustes →
+                    “Cuenta y push”.\n\n2. Vuelve aquí y sigue
+                    los pasos.
+                  </Text>
+                  <AppButton
+                    title="Crear cuenta / iniciar sesión"
+                    onPress={() =>
+                      router.push(
+                        "/settings/account",
+                      )
+                    }
+                  />
+                </View>
+              ) : activeServer ? (
+                <View style={styles.guideBox}>
+                  <Text style={styles.guideText}>
+                    1. En Uptime Kuma: Ajustes →
+                    Notificaciones → “Añadir
+                    notificación” → tipo Webhook.\n\n2.
+                    Pon esta URL:\n{" "}
+                  </Text>
+                  <Text
+                    style={styles.guideUrl}
+                    selectable
+                  >
+                    {`${PUSH_BACKEND_URL}/api/webhook/${activeServer.id}`}
+                  </Text>
+                  <Text style={styles.guideText}>
+                    \n3. Añade esta cabecera (Custom
+                    Headers):\n{" "}
+                  </Text>
+                  <Text
+                    style={styles.guideUrl}
+                    selectable
+                  >
+                    {`X-Api-Key: ${session.webhookKey}`}
+                  </Text>
+                  <Text style={styles.guideText}>
+                    \n4. Activa los estados “Up” y “Down”
+                    y guarda.\n\nAñade esa notificación a
+                    los monitores que quieras vigilar.
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.guideBox}>
+                  <Text style={styles.guideText}>
+                    Añade primero un servidor en la
+                    pantalla principal para generar tu URL
+                    de webhook.
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.section}>
               <PreferenceSwitch
                 title="Avisos activos"
                 description="Generar notificaciones locales ante cambios UP/DOWN."
@@ -443,6 +529,30 @@ const styles = StyleSheet.create({
   loadingText: {
     ...typography.body,
     color: colors.textMuted,
+  },
+  guideBox: {
+    marginTop: spacing.sm,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  guideText: {
+    ...typography.caption,
+    color: colors.text,
+    lineHeight: 20,
+  },
+  guideUrl: {
+    ...typography.caption,
+    color: colors.primary,
+    fontWeight: "700",
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    padding: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   content: {
     gap: spacing.xl,

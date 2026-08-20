@@ -15,6 +15,7 @@ import { useServerStore } from "@/src/modules/servers/store/server.store";
 import { useAppSettingsStore } from "@/src/modules/settings/store/appSettings.store";
 import { useSubscriptionStore } from "@/src/modules/subscription/store/subscription.store";
 import { useTimelineStore } from "@/src/modules/timeline/store/timeline.store";
+import { useAccountStore } from "@/src/modules/account/store/account.store";
 import { VaultLockOverlay } from "@/src/modules/vault/components/VaultLockOverlay";
 import { useVaultStore } from "@/src/modules/vault/store/vault.store";
 import { kumaService } from "@/src/core/services/KumaService";
@@ -110,6 +111,7 @@ export default function RootLayout() {
   }, [hydrateSubscription]);
 
   useEffect(() => {
+    void useAccountStore.getState().hydrate();
     void useTimelineStore.getState().hydrate();
     void useMonitorStore.getState().hydrate();
     void useHeartbeatHistoryStore

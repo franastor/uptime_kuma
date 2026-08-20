@@ -124,6 +124,38 @@ export default function SettingsScreen() {
         <Pressable
           accessibilityRole="button"
           onPress={() =>
+            router.push("/settings/account")
+          }
+          style={({ pressed }) => [
+            styles.linkCard,
+            pressed ? styles.linkCardPressed : null,
+          ]}
+        >
+          <View style={styles.linkIcon}>
+            <MaterialIcons
+              name="account-circle"
+              size={22}
+              color={colors.primary}
+            />
+          </View>
+          <View style={styles.linkInfo}>
+            <Text style={styles.linkTitle}>
+              Cuenta y push
+            </Text>
+            <Text style={styles.linkDescription}>
+              Inicia sesión para recibir avisos push en tus dispositivos
+            </Text>
+          </View>
+          <MaterialIcons
+            name="chevron-right"
+            size={22}
+            color={colors.textMuted}
+          />
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={() =>
             router.push(
               "/settings/notifications",
             )

@@ -2,6 +2,8 @@ import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
 import { notificationService } from "@/src/notifications/NotificationService";
+import { useAccountStore } from "@/src/modules/account/store/account.store";
+import { useServerStore } from "@/src/modules/servers/store/server.store";
 
 // Backend kumapulse-push (contenedor en el homelab de Fran).
 // La APP_KEY solo permite registrar tokens, nunca enviar push.
@@ -53,6 +55,12 @@ export async function registerPushToken(): Promise<string | null> {
         body: JSON.stringify({
           token: token.data,
           platform: Platform.OS,
+          // Multi-usuario: asociar el token a la cuenta (si hay sesión)
+          // y a los servidores que tiene configurados el usuario.
+          userId: useAccountStore.getState().session?.userId ?? null,
+          serverIds: useServerStore
+            .getState()
+            .servers.map((s) => s.id),
         }),
       },
     );

@@ -22,6 +22,7 @@ import {
 } from "react-native";
 
 import { kumaService } from "@/src/core/services/KumaService";
+import { registerPushToken } from "@/src/notifications/PushRegistration";
 
 import { getServerCredentials } from "@/src/core/storage/serverStorage";
 
@@ -356,6 +357,10 @@ export default function AddServerScreen() {
           hasTwoFactor,
         });
       }
+
+      // El token push se asocia a los servidores del usuario:
+      // al guardar/editar, re-registrar para actualizar serverIds.
+      void registerPushToken();
 
       router.replace("/");
     } catch (error) {
