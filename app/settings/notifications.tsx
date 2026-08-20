@@ -222,6 +222,13 @@ export default function NotificationSettingsScreen() {
                     void Linking.openSettings();
                   }}
                 />
+              ) : pushPermission === "denied" ? (
+                <AppButton
+                  title="Permiso denegado — abrir ajustes"
+                  onPress={() => {
+                    void Linking.openSettings();
+                  }}
+                />
               ) : (
                 <AppButton
                   title="Activar notificaciones push"

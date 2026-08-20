@@ -51,9 +51,20 @@ function reconnectActiveServer(): Promise<void> {
     (item) => item.id === activeServerId,
   );
 
+  const isBusy =
+    server?.connectionStatus ===
+      "connecting" ||
+    server?.connectionStatus ===
+      "reconnecting" ||
+    server?.connectionStatus ===
+      "connected" ||
+    kumaService.isConnected(
+      server?.id ?? "",
+    );
+
   if (
     !server ||
-    kumaService.isConnected(server.id)
+    isBusy
   ) {
     return Promise.resolve();
   }

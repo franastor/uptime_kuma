@@ -238,17 +238,34 @@ export default function ServersScreen() {
     }
 
     // Auto-conexión al arrancar: si hay servidor activo y no está
-    // conectado, conectar solo (sin navegar, sin modales).
+    // conectado ni conectando, conectar solo (sin navegar, sin modales).
     // Si requiere 2FA o credenciales, falla en silencio y el usuario
     // pulsa el servidor como siempre.
+    //
+    // IMPORTANTE: leemos el estado con getState() y NO dependemos de
+    // `servers` como dependencia del efecto. connect() actualiza el
+    // array de servidores (connectionStatus) y si el efecto dependiera
+    // de esa referencia, entraría en un bucle infinito de reconexión
+    // que satura la app y la hace crashear.
     if (activeServerId) {
-      const server = servers.find(
-        (item) => item.id === activeServerId,
-      );
-      if (
-        server &&
-        !kumaService.isConnected(server.id)
-      ) {
+      const server = useServerStore
+        .getState()
+        .servers.find(
+          (item) => item.id === activeServerId,
+        );
+
+      const isBusy =
+        server?.connectionStatus ===
+          "connecting" ||
+        server?.connectionStatus ===
+          "reconnecting" ||
+        server?.connectionStatus ===
+          "connected" ||
+        kumaService.isConnected(
+          server?.id ?? "",
+        );
+
+      if (server && !isBusy) {
         void kumaService
           .connect(server.id)
           .catch(() => {
@@ -260,7 +277,6 @@ export default function ServersScreen() {
     hydrate,
     hydrated,
     activeServerId,
-    servers,
   ]);
 
   useEffect(() => {
