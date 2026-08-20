@@ -124,6 +124,38 @@ export default function SettingsScreen() {
         <Pressable
           accessibilityRole="button"
           onPress={() =>
+            router.push("/settings/premium")
+          }
+          style={({ pressed }) => [
+            styles.linkCard,
+            pressed ? styles.linkCardPressed : null,
+          ]}
+        >
+          <View style={styles.linkIcon}>
+            <MaterialIcons
+              name="workspace-premium"
+              size={22}
+              color={colors.primary}
+            />
+          </View>
+          <View style={styles.linkInfo}>
+            <Text style={styles.linkTitle}>
+              KumaPulse Premium
+            </Text>
+            <Text style={styles.linkDescription}>
+              Suscripción, features premium y restaurar compras
+            </Text>
+          </View>
+          <MaterialIcons
+            name="chevron-right"
+            size={22}
+            color={colors.textMuted}
+          />
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={() =>
             router.push("/settings/account")
           }
           style={({ pressed }) => [
