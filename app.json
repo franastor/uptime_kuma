@@ -2,7 +2,7 @@
   "expo": {
     "name": "KumaPulse",
     "slug": "kumapulse",
-    "version": "0.9.5",
+    "version": "0.9.6",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "kumapulse",
@@ -26,7 +26,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.kumapulse.app"
+      "package": "com.kumapulse.app",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -51,10 +52,7 @@
         "expo-notifications",
         {
           "color": "#5CDD8B",
-          "defaultChannel": "monitor-status",
-          "android": {
-            "googleServicesFile": "./google-services.json"
-          }
+          "defaultChannel": "monitor-status"
         }
       ],
       [

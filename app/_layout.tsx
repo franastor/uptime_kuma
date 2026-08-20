@@ -146,6 +146,9 @@ export default function RootLayout() {
         ) {
           maybeLockFromTimeout(lockTimeoutMinutes);
           void reconnectActiveServer();
+          // Si el permiso ya está concedido, (re)registra el token push
+          // al volver a la app (p.ej. tras activarlo en ajustes del sistema).
+          void registerPushToken();
         }
       },
     );
