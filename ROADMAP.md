@@ -21,5 +21,6 @@ Nota: el backend de push vive en el homelab de Fran (192.168.1.18:5830) y aguant
 
 - [ ] Build `preview` instalable sin Metro (closed testing Android).
 - [ ] Política de privacidad / términos para tiendas.
-- [ ] RevenueCat cuando toque cobrar Premium de verdad.
+- [ ] RevenueCat cuando toque cobrar Premium de verdad (suscripciones Google Play / App Store).
+- [ ] **Integración Stripe (decisión de Fran 20/08/2026)**: para pagos con tarjeta directos y/o venta desde web. Si se vende dentro de la app móvil, las tiendas se llevan comisión; RevenueCat + tiendas es lo estándar, Stripe complementa para web. Decidir modelo cuando toque.
 - [ ] Sync cloud del vault (fase 2; v1 es local + export/import).
