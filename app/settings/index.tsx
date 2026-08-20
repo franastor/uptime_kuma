@@ -219,7 +219,9 @@ export default function SettingsScreen() {
           />
         </Pressable>
 
-        {__DEV__ ? (
+        {(__DEV__ ||
+        process.env.EXPO_PUBLIC_ENABLE_DEV_TOOLS ===
+          "true") ? (
           <View style={styles.devCard}>
             <View style={styles.devHeader}>
               <MaterialIcons

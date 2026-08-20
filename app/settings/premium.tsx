@@ -238,6 +238,32 @@ export default function PremiumScreen() {
           />
         )}
 
+        {(__DEV__ ||
+        process.env.EXPO_PUBLIC_ENABLE_DEV_TOOLS ===
+          "true") ? (
+          <View style={styles.testBox}>
+            <Text style={styles.testTitle}>
+              Modo prueba (solo builds de test)
+            </Text>
+            <Text style={styles.testText}>
+              Alterna el plan local sin comprar nada, para
+              probar el gating free/premium.
+            </Text>
+            <AppButton
+              title={
+                isPremium
+                  ? "Volver a Free (test)"
+                  : "Activar Premium (test)"
+              }
+              onPress={() =>
+                setPlan(
+                  isPremium ? "free" : "premium",
+                )
+              }
+            />
+          </View>
+        ) : null}
+
         <AppButton
           title="Restaurar compras"
           disabled={busy || !rcConfigured}
@@ -311,6 +337,23 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   featureDescription: {
+    ...typography.caption,
+    color: colors.textMuted,
+  },
+  testBox: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.warning,
+    borderRadius: 12,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  testTitle: {
+    ...typography.bodyMedium,
+    color: colors.text,
+    fontWeight: "700",
+  },
+  testText: {
     ...typography.caption,
     color: colors.textMuted,
   },
