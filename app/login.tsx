@@ -484,7 +484,7 @@ export default function AddServerScreen() {
 
             <AppTextInput
               label="URL del servidor"
-              placeholder="https://enzo.ganaenergia.com"
+              placeholder="https://aquivatuservidor"
               value={url}
               onChangeText={
                 setUrl
