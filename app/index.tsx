@@ -21,6 +21,7 @@ import {
 } from "@/src/core/socket/kumaSocket.types";
 
 import { useServerStore } from "@/src/modules/servers/store/server.store";
+import { useAccountStore } from "@/src/modules/account/store/account.store";
 
 import type {
   KumaServer,
@@ -230,6 +231,34 @@ export default function ServersScreen() {
       (state) =>
         state.setActiveServer,
     );
+
+  const accountSession =
+    useAccountStore(
+      (state) =>
+        state.session,
+    );
+
+  const accountHydrated =
+    useAccountStore(
+      (state) =>
+        state.hydrated,
+    );
+
+  // Login obligatorio: sin sesión, la lista de servidores no se muestra.
+  // Redirigimos a la pantalla de cuenta (registro / inicio de sesión).
+  useEffect(() => {
+    if (
+      accountHydrated &&
+      !accountSession
+    ) {
+      router.replace(
+        "/settings/account",
+      );
+    }
+  }, [
+    accountHydrated,
+    accountSession,
+  ]);
 
   useEffect(() => {
     if (!hydrated) {
@@ -576,6 +605,26 @@ export default function ServersScreen() {
   }
 
   if (!hydrated) {
+    return (
+      <Screen
+        contentContainerStyle={
+          styles.loadingScreen
+        }
+      >
+        <ActivityIndicator
+          size="large"
+          color={colors.primary}
+        />
+      </Screen>
+    );
+  }
+
+  // Mientras no haya sesión (o esté hidratándose la cuenta),
+  // mostramos un loading: la redirección a la cuenta va en camino.
+  if (
+    !accountHydrated ||
+    !accountSession
+  ) {
     return (
       <Screen
         contentContainerStyle={
