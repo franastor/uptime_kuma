@@ -200,7 +200,7 @@ export default function SecuritySettingsScreen() {
             <MaterialIcons
               name="password"
               size={22}
-              color={colors.primary}
+              color={colors.textSecondary}
             />
             <Text style={styles.cardTitle}>
               {t("vault.masterPassword")}
@@ -326,8 +326,8 @@ export default function SecuritySettingsScreen() {
               }}
               thumbColor={
                 biometricUnlockEnabled
-                  ? colors.primary
-                  : colors.textMuted
+                  ? colors.primaryDark
+                  : colors.textSecondary
               }
             />
           </View>
@@ -505,16 +505,18 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   chip: {
+    minHeight: 36,
+    justifyContent: "center",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: 999,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surfaceElevated,
   },
   chipSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryDark,
+    borderColor: colors.text,
+    backgroundColor: colors.text,
   },
   chipText: {
     ...typography.caption,
@@ -522,7 +524,6 @@ const styles = StyleSheet.create({
   },
   chipTextSelected: {
     color: colors.background,
-    fontWeight: "700",
   },
   error: {
     ...typography.caption,

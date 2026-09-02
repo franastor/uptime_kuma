@@ -114,11 +114,11 @@ const styles = StyleSheet.create({
   label: {
     ...typography.caption,
     color: colors.textMuted,
-    fontWeight: "700",
   },
   value: {
-    ...typography.heading,
+    fontFamily: "MartianMono_500Medium",
     fontSize: 22,
+    lineHeight: 26,
   },
   helper: {
     ...typography.caption,

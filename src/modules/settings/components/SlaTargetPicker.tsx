@@ -66,7 +66,7 @@ export function SlaTargetPicker({
             color={
               index <= 0
                 ? colors.textMuted
-                : colors.primary
+                : colors.textSecondary
             }
           />
         </Pressable>
@@ -104,7 +104,7 @@ export function SlaTargetPicker({
               index >=
               SLA_TARGET_PRESETS.length - 1
                 ? colors.textMuted
-                : colors.primary
+                : colors.textSecondary
             }
           />
         </Pressable>
@@ -186,8 +186,10 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   value: {
-    ...typography.title,
-    color: colors.primary,
+    fontFamily: "MartianMono_500Medium",
+    fontSize: 30,
+    lineHeight: 36,
+    color: colors.text,
   },
   valueHint: {
     ...typography.caption,
@@ -199,22 +201,24 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   preset: {
+    minHeight: 34,
+    justifyContent: "center",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    borderRadius: 999,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surfaceElevated,
   },
   presetSelected: {
-    borderColor: colors.primary,
+    borderColor: colors.text,
+    backgroundColor: colors.text,
   },
   presetText: {
     ...typography.caption,
     color: colors.textSecondary,
-    fontWeight: "700",
   },
   presetTextSelected: {
-    color: colors.primary,
+    color: colors.background,
   },
 });

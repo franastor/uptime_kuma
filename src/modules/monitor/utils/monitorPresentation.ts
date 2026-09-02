@@ -23,7 +23,7 @@ export function getMonitorStatusInformation(
   if (!monitor.active) {
     return {
       label: "Pausado",
-      color: colors.textMuted,
+      color: colors.warning,
     };
   }
 

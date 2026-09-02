@@ -576,12 +576,11 @@ export default function AddServerScreen() {
                 trackColor={{
                   false:
                     colors.border,
-                  true:
-                    colors.primaryDark,
+                  true: colors.primary,
                 }}
                 thumbColor={
                   hasTwoFactor
-                    ? colors.primary
+                    ? colors.primaryDark
                     : colors.textSecondary
                 }
               />
@@ -601,6 +600,7 @@ export default function AddServerScreen() {
 
             <AppButton
               title="Cancelar"
+              variant="ghost"
               disabled={saving}
               onPress={() =>
                 router.back()
@@ -665,7 +665,7 @@ const styles =
       borderWidth: 1,
       borderColor:
         colors.border,
-      borderRadius: 16,
+      borderRadius: 14,
       backgroundColor:
         colors.surface,
     },

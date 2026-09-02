@@ -46,10 +46,9 @@ export function AvailabilityTrend({
                         Math.round(ratio * 90),
                       ),
                       backgroundColor:
-                        point.uptime !== null &&
-                        point.uptime >= 0.99
+                        point.uptime !== null
                           ? colors.success
-                          : colors.warning,
+                          : colors.border,
                     },
                   ]}
                 />
@@ -86,9 +85,8 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   value: {
-    ...typography.caption,
+    ...typography.monoMedium,
     color: colors.textSecondary,
-    fontWeight: "700",
   },
   track: {
     width: "100%",
@@ -105,7 +103,6 @@ const styles = StyleSheet.create({
   label: {
     ...typography.caption,
     color: colors.textMuted,
-    fontWeight: "700",
   },
   hint: {
     ...typography.caption,

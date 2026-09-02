@@ -71,7 +71,7 @@ export default function SettingsScreen() {
             <MaterialIcons
               name="lock"
               size={22}
-              color={colors.primary}
+              color={colors.textSecondary}
             />
           </View>
           <View style={styles.linkInfo}>
@@ -103,7 +103,7 @@ export default function SettingsScreen() {
             <MaterialIcons
               name="import-export"
               size={22}
-              color={colors.primary}
+              color={colors.textSecondary}
             />
           </View>
           <View style={styles.linkInfo}>
@@ -135,7 +135,7 @@ export default function SettingsScreen() {
             <MaterialIcons
               name="workspace-premium"
               size={22}
-              color={colors.primary}
+              color={colors.textSecondary}
             />
           </View>
           <View style={styles.linkInfo}>
@@ -167,7 +167,7 @@ export default function SettingsScreen() {
             <MaterialIcons
               name="account-circle"
               size={22}
-              color={colors.primary}
+              color={colors.textSecondary}
             />
           </View>
           <View style={styles.linkInfo}>
@@ -201,7 +201,7 @@ export default function SettingsScreen() {
             <MaterialIcons
               name="notifications-active"
               size={22}
-              color={colors.primary}
+              color={colors.textSecondary}
             />
           </View>
           <View style={styles.linkInfo}>
@@ -227,7 +227,7 @@ export default function SettingsScreen() {
               <MaterialIcons
                 name="developer-mode"
                 size={20}
-                color={colors.warning}
+                color={colors.textMuted}
               />
               <Text style={styles.devBadge}>
                 {t("settings.devOnly")}
@@ -251,12 +251,12 @@ export default function SettingsScreen() {
                 }
                 trackColor={{
                   false: colors.border,
-                  true: colors.primaryDark,
+                  true: colors.primary,
                 }}
                 thumbColor={
                   isPremium
-                    ? colors.primary
-                    : colors.textMuted
+                    ? colors.primaryDark
+                    : colors.textSecondary
                 }
               />
             </View>
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 16,
+    borderRadius: 14,
     padding: spacing.lg,
   },
   linkCardPressed: {
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   linkIcon: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.surfaceElevated,
@@ -323,8 +323,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.warning,
-    borderRadius: 16,
+    borderColor: colors.border,
+    borderRadius: 14,
     padding: spacing.lg,
   },
   devHeader: {
@@ -333,9 +333,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   devBadge: {
-    ...typography.caption,
-    color: colors.warning,
-    fontWeight: "800",
+    ...typography.label,
+    color: colors.textMuted,
   },
   devRow: {
     flexDirection: "row",

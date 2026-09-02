@@ -215,6 +215,7 @@ export default function TimelineScreen() {
           </Text>
           <AppButton
             title="Volver"
+            variant="ghost"
             onPress={() => router.back()}
           />
         </Screen>

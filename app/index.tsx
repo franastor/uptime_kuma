@@ -8,6 +8,7 @@ import {
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -643,15 +644,12 @@ export default function ServersScreen() {
     <>
       <Screen scroll>
         <View style={styles.header}>
-          <View style={styles.logo}>
-            <Text
-              style={
-                styles.logoText
-              }
-            >
-              K
-            </Text>
-          </View>
+          <Image
+            accessibilityLabel="KumaPulse"
+            resizeMode="contain"
+            source={require("@/assets/images/kumapulse-mark.png")}
+            style={styles.logo}
+          />
 
           <View
             style={
@@ -701,7 +699,7 @@ export default function ServersScreen() {
             <MaterialIcons
               name="settings"
               size={22}
-              color={colors.primary}
+              color={colors.textSecondary}
             />
           </Pressable>
         </View>
@@ -917,7 +915,7 @@ export default function ServersScreen() {
                                 name="verified-user"
                                 size={14}
                                 color={
-                                  colors.primary
+                                  colors.textSecondary
                                 }
                               />
 
@@ -1038,7 +1036,7 @@ export default function ServersScreen() {
                             name="edit"
                             size={22}
                             color={
-                              colors.primary
+                              colors.textSecondary
                             }
                           />
                         </Pressable>
@@ -1174,17 +1172,6 @@ const styles = StyleSheet.create({
   logo: {
     width: 58,
     height: 58,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 18,
-    backgroundColor:
-      colors.primary,
-  },
-
-  logoText: {
-    fontSize: 30,
-    fontWeight: "800",
-    color: colors.background,
   },
 
   headerText: {
@@ -1218,7 +1205,7 @@ const styles = StyleSheet.create({
   },
 
   versionText: {
-    ...typography.caption,
+    ...typography.mono,
     color: colors.textMuted,
     marginTop: spacing.xs,
   },
@@ -1237,15 +1224,14 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 18,
+    borderRadius: 14,
     backgroundColor:
       colors.surface,
   },
 
   activeServerCard: {
     borderColor: colors.primary,
-    backgroundColor:
-      colors.surfaceElevated,
+    borderWidth: 2,
   },
 
   serverMainButton: {
@@ -1295,12 +1281,12 @@ const styles = StyleSheet.create({
   },
 
   serverUrl: {
-    ...typography.caption,
-    color: colors.textSecondary,
+    ...typography.mono,
+    color: colors.textMuted,
   },
 
   serverUsername: {
-    ...typography.caption,
+    ...typography.mono,
     color: colors.textMuted,
   },
 
@@ -1312,8 +1298,7 @@ const styles = StyleSheet.create({
 
   twoFactorText: {
     ...typography.caption,
-    color: colors.primary,
-    fontWeight: "600",
+    color: colors.textSecondary,
   },
 
   connectionRow: {
@@ -1325,8 +1310,7 @@ const styles = StyleSheet.create({
   },
 
   connectionStatus: {
-    ...typography.caption,
-    fontWeight: "600",
+    ...typography.label,
   },
 
   lastSyncText: {
@@ -1343,7 +1327,7 @@ const styles = StyleSheet.create({
     ...typography.caption,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    borderRadius: 20,
+    borderRadius: 8,
     overflow: "hidden",
     color: colors.textSecondary,
     backgroundColor: colors.border,
@@ -1359,9 +1343,9 @@ const styles = StyleSheet.create({
     ...typography.caption,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    borderRadius: 20,
+    borderRadius: 8,
     overflow: "hidden",
-    color: colors.primary,
+    color: colors.text,
     backgroundColor: colors.border,
   },
 

@@ -364,7 +364,7 @@ export default function NotificationSettingsScreen() {
                 </Text>
                 <View style={styles.planBadge}>
                   <Text style={styles.planBadgeText}>
-                    PREMIUM
+                    Premium
                   </Text>
                 </View>
               </View>
@@ -507,11 +507,11 @@ function PreferenceSwitch({
         onValueChange={onValueChange}
         trackColor={{
           false: colors.border,
-          true: colors.primaryDark,
+          true: colors.primary,
         }}
         thumbColor={
           value
-            ? colors.primary
+            ? colors.primaryDark
             : colors.textSecondary
         }
       />
@@ -545,9 +545,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   guideUrl: {
-    ...typography.caption,
-    color: colors.primary,
-    fontWeight: "700",
+    ...typography.mono,
+    color: colors.textSecondary,
     backgroundColor: colors.background,
     borderRadius: 8,
     padding: spacing.sm,
@@ -579,15 +578,14 @@ const styles = StyleSheet.create({
   planBadge: {
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    borderRadius: 999,
+    borderRadius: 8,
     backgroundColor: colors.surfaceElevated,
     borderWidth: 1,
-    borderColor: colors.primary,
+    borderColor: colors.border,
   },
   planBadgeText: {
     ...typography.caption,
-    color: colors.primary,
-    fontWeight: "800",
+    color: colors.textSecondary,
   },
   switchCard: {
     flexDirection: "row",
@@ -596,7 +594,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 18,
+    borderRadius: 14,
     backgroundColor: colors.surface,
   },
   switchCardDisabled: {
@@ -621,16 +619,18 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   tagChip: {
+    minHeight: 36,
+    justifyContent: "center",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: 999,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surfaceElevated,
   },
   tagChipSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.surface,
+    borderColor: colors.text,
+    backgroundColor: colors.text,
   },
   tagChipDisabled: {
     opacity: 0.5,
@@ -638,10 +638,9 @@ const styles = StyleSheet.create({
   tagChipText: {
     ...typography.caption,
     color: colors.textSecondary,
-    fontWeight: "700",
   },
   tagChipTextSelected: {
-    color: colors.primary,
+    color: colors.background,
   },
   emptyTags: {
     ...typography.caption,
@@ -652,7 +651,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.xl,
-    borderRadius: 16,
+    borderRadius: 8,
     backgroundColor: colors.surfaceElevated,
     borderWidth: 1,
     borderColor: colors.border,

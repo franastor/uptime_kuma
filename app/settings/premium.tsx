@@ -69,12 +69,6 @@ const PREMIUM_FEATURES: {
     description:
       "Informes Excel, CSV y copias de seguridad.",
   },
-  {
-    icon: "palette",
-    title: "Temas personalizados",
-    description:
-      "Personaliza el aspecto de la app.",
-  },
 ];
 
 export default function PremiumScreen() {
@@ -171,7 +165,7 @@ export default function PremiumScreen() {
             <MaterialIcons
               name="workspace-premium"
               size={40}
-              color={colors.primary}
+              color={colors.text}
             />
           </View>
           <Text style={styles.title}>
@@ -196,7 +190,7 @@ export default function PremiumScreen() {
                 <MaterialIcons
                   name={feature.icon}
                   size={20}
-                  color={colors.primary}
+                  color={colors.textSecondary}
                 />
               </View>
               <View style={styles.featureInfo}>
@@ -266,6 +260,7 @@ export default function PremiumScreen() {
 
         <AppButton
           title="Restaurar compras"
+          variant="ghost"
           disabled={busy || !rcConfigured}
           onPress={() => {
             void handleRestore();
@@ -274,6 +269,7 @@ export default function PremiumScreen() {
 
         <AppButton
           title="Volver a Ajustes"
+          variant="ghost"
           onPress={() => router.back()}
         />
       </Screen>
@@ -290,8 +286,8 @@ const styles = StyleSheet.create({
   logoBadge: {
     width: 80,
     height: 80,
-    borderRadius: 24,
-    backgroundColor: colors.surface,
+    borderRadius: 20,
+    backgroundColor: colors.surfaceElevated,
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: "center",
@@ -311,7 +307,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 16,
+    borderRadius: 14,
     padding: spacing.lg,
     gap: spacing.md,
   },
@@ -323,8 +319,8 @@ const styles = StyleSheet.create({
   featureIcon: {
     width: 40,
     height: 40,
-    borderRadius: 12,
-    backgroundColor: colors.background,
+    borderRadius: 8,
+    backgroundColor: colors.surfaceElevated,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -334,7 +330,6 @@ const styles = StyleSheet.create({
   featureTitle: {
     ...typography.bodyMedium,
     color: colors.text,
-    fontWeight: "700",
   },
   featureDescription: {
     ...typography.caption,
@@ -344,14 +339,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.warning,
-    borderRadius: 12,
+    borderRadius: 8,
     padding: spacing.md,
     gap: spacing.sm,
   },
   testTitle: {
     ...typography.bodyMedium,
     color: colors.text,
-    fontWeight: "700",
   },
   testText: {
     ...typography.caption,
@@ -361,7 +355,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: 8,
     padding: spacing.md,
   },
   noticeText: {

@@ -296,7 +296,7 @@ import {
                   <ActivityIndicator
                     size="small"
                     color={
-                      colors.background
+                      colors.primaryDark
                     }
                   />
                 ) : (
@@ -343,9 +343,9 @@ import {
       padding: spacing.xl,
       borderWidth: 1,
       borderColor: colors.border,
-      borderRadius: 24,
+      borderRadius: 20,
       backgroundColor:
-        colors.surface,
+        colors.surfaceElevated,
     },
   
     iconContainer: {
@@ -386,10 +386,11 @@ import {
       borderColor: colors.border,
       borderRadius: 14,
       backgroundColor:
-        colors.surfaceElevated,
+        colors.surface,
       color: colors.text,
       fontSize: 24,
-      fontWeight: "700",
+      fontFamily:
+        "MartianMono_500Medium",
       letterSpacing: 8,
       textAlign: "center",
     },
@@ -419,7 +420,7 @@ import {
       justifyContent: "center",
       paddingHorizontal:
         spacing.md,
-      borderRadius: 14,
+      borderRadius: 8,
     },
   
     cancelButton: {
@@ -441,7 +442,7 @@ import {
   
     confirmButtonText: {
       ...typography.bodyMedium,
-      color: colors.background,
+      color: colors.primaryDark,
     },
   
     buttonPressed: {

@@ -47,7 +47,7 @@ function getStatusPresentation(
     case "maintenance":
       return {
         label: "MANTENIMIENTO",
-        color: colors.info,
+        color: colors.warning,
         icon: "build",
       };
     default:
@@ -202,17 +202,16 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   status: {
-    ...typography.caption,
-    fontWeight: "900",
-    letterSpacing: 0.5,
+    ...typography.label,
+    letterSpacing: 0.4,
   },
   time: {
     ...typography.caption,
     color: colors.textMuted,
   },
   date: {
-    ...typography.caption,
-    color: colors.textSecondary,
+    ...typography.mono,
+    color: colors.textMuted,
   },
   message: {
     ...typography.caption,
@@ -220,9 +219,8 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   ping: {
-    ...typography.caption,
-    color: colors.info,
-    fontWeight: "700",
+    ...typography.mono,
+    color: colors.textSecondary,
   },
   empty: {
     alignItems: "center",

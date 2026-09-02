@@ -25,7 +25,7 @@ export function LanguagePicker({
         <MaterialIcons
           name="translate"
           size={22}
-          color={colors.primary}
+          color={colors.textSecondary}
         />
         <View style={styles.headerText}>
           <Text style={styles.title}>
@@ -79,7 +79,7 @@ export function LanguagePicker({
                 size={22}
                 color={
                   selected
-                    ? colors.primary
+                    ? colors.background
                     : colors.textMuted
                 }
               />
@@ -125,13 +125,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.md,
     padding: spacing.md,
-    borderRadius: 12,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surfaceElevated,
   },
   optionSelected: {
-    borderColor: colors.primary,
+    borderColor: colors.text,
+    backgroundColor: colors.text,
   },
   optionPressed: {
     opacity: 0.75,
@@ -145,7 +146,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   optionLabelSelected: {
-    color: colors.primary,
+    color: colors.background,
   },
   optionHint: {
     ...typography.caption,

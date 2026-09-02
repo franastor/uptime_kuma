@@ -22,15 +22,15 @@ export function MonitorTagList({
   return (
     <View style={styles.container}>
       {visibleTags.map((tag) => (
-        <View
-          key={tag.id}
-          style={[
-            styles.tag,
-            tag.color
-              ? { borderColor: tag.color }
-              : null,
-          ]}
-        >
+        <View key={tag.id} style={styles.tag}>
+          <View
+            style={[
+              styles.dot,
+              tag.color
+                ? { backgroundColor: tag.color }
+                : styles.dotMuted,
+            ]}
+          />
           <Text style={styles.tagText} numberOfLines={1}>
             {tag.name}
             {tag.value ? `: ${tag.value}` : ""}
@@ -54,13 +54,24 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   tag: {
-    maxWidth: 150,
+    maxWidth: 180,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 20,
-    backgroundColor: colors.surfaceElevated,
+    borderRadius: 8,
+    backgroundColor: colors.surface,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  dotMuted: {
+    backgroundColor: colors.textMuted,
   },
   tagText: {
     ...typography.caption,

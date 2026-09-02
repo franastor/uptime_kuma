@@ -35,7 +35,7 @@ function directionMeta(direction: TrendDirection): {
     case "stable":
       return {
         icon: "trending-flat",
-        color: colors.info,
+        color: colors.textSecondary,
         label: "Estable",
       };
     default:
@@ -157,9 +157,6 @@ const styles = StyleSheet.create({
   metric: {
     ...typography.caption,
     color: colors.textMuted,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.3,
   },
   label: {
     ...typography.bodyMedium,
@@ -170,13 +167,11 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   badge: {
-    ...typography.caption,
-    fontWeight: "700",
+    ...typography.label,
   },
   delta: {
-    ...typography.caption,
+    ...typography.mono,
     color: colors.textSecondary,
-    fontWeight: "700",
   },
   detail: {
     ...typography.caption,

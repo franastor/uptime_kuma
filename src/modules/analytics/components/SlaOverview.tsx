@@ -41,7 +41,8 @@ export function SlaOverview({
                 color: getSlaColor(
                   summary.slaStatus,
                 ),
-                fontWeight: "700",
+                fontFamily:
+                  "FamiljenGrotesk_600SemiBold",
               }}
             >
               {getSlaLabel(summary.slaStatus)}
@@ -154,8 +155,10 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   uptime: {
-    ...typography.heading,
+    fontFamily: "MartianMono_500Medium",
     fontSize: 22,
+    lineHeight: 28,
+    color: colors.text,
   },
   empty: {
     ...typography.caption,
@@ -165,9 +168,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   listTitle: {
-    ...typography.caption,
+    ...typography.label,
     color: colors.textSecondary,
-    fontWeight: "700",
   },
   row: {
     flexDirection: "row",
@@ -198,11 +200,10 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   status: {
-    ...typography.caption,
-    fontWeight: "700",
+    ...typography.label,
   },
   metaValue: {
-    ...typography.caption,
+    ...typography.mono,
     color: colors.textSecondary,
   },
 });

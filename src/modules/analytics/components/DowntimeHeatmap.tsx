@@ -22,15 +22,15 @@ function intensityColor(
   );
 
   if (ratio < 0.25) {
-    return "#5A2A2A";
+    return "#5A2529";
   }
 
   if (ratio < 0.5) {
-    return "#8B3535";
+    return "#8A3138";
   }
 
   if (ratio < 0.75) {
-    return "#C44A4A";
+    return "#BA3D44";
   }
 
   return colors.danger;
@@ -156,7 +156,6 @@ const styles = StyleSheet.create({
     ...typography.caption,
     width: 14,
     color: colors.textMuted,
-    fontWeight: "700",
     textAlign: "center",
   },
   hours: {

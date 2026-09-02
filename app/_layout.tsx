@@ -1,5 +1,21 @@
+import {
+  FamiljenGrotesk_400Regular,
+  FamiljenGrotesk_500Medium,
+  FamiljenGrotesk_600SemiBold,
+  FamiljenGrotesk_700Bold,
+  useFonts as useFamiljenFonts,
+} from "@expo-google-fonts/familjen-grotesk";
+import {
+  MartianMono_400Regular,
+  MartianMono_500Medium,
+  useFonts as useMartianFonts,
+} from "@expo-google-fonts/martian-mono";
 import { Stack, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import {
+  hideAsync,
+  preventAutoHideAsync,
+} from "expo-splash-screen";
 import {
   useEffect,
   useRef,
@@ -26,6 +42,13 @@ import {
 import { registerPushToken } from "@/src/notifications/PushRegistration";
 import { ConfirmModal } from "@/src/shared/components/ConfirmModal";
 import { colors } from "@/src/shared/theme";
+
+// La identidad usa dos familias locales (sin CDN):
+// Familjen Grotesk (UI) + Martian Mono (dato de máquina).
+// Mientras cargan se mantiene el splash; nunca texto invisible.
+preventAutoHideAsync().catch(() => {
+  // En web/Expo Go puede no estar disponible; el render no depende de esto.
+});
 
 function navigateFromNotification(
   data: NotificationDeepLinkData,
@@ -80,6 +103,28 @@ function reconnectActiveServer(): Promise<void> {
 }
 
 export default function RootLayout() {
+  const [familjenLoaded, familjenError] = useFamiljenFonts({
+    FamiljenGrotesk_400Regular,
+    FamiljenGrotesk_500Medium,
+    FamiljenGrotesk_600SemiBold,
+    FamiljenGrotesk_700Bold,
+  });
+  const [martianLoaded, martianError] = useMartianFonts({
+    MartianMono_400Regular,
+    MartianMono_500Medium,
+  });
+  // Fallback de sistema si una fuente falla: nunca bloquear la app ni
+  // mostrar texto invisible.
+  const fontsReady =
+    (familjenLoaded || Boolean(familjenError)) &&
+    (martianLoaded || Boolean(martianError));
+
+  useEffect(() => {
+    if (fontsReady) {
+      void hideAsync();
+    }
+  }, [fontsReady]);
+
   const hydrateSubscription =
     useSubscriptionStore(
       (state) => state.hydrate,
@@ -217,6 +262,10 @@ export default function RootLayout() {
       setRequestingPermission(false);
       setShowPermissionModal(false);
     }
+  }
+
+  if (!fontsReady) {
+    return null;
   }
 
   return (

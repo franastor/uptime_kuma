@@ -98,7 +98,9 @@ export function PriorityMonitorsList({
               </Text>
               <Text style={styles.meta}>
                 {statusLabel(monitor.status)} · SLA{" "}
-                {getSlaLabel(monitor.slaStatus)} ·{" "}
+                {getSlaLabel(monitor.slaStatus)}
+              </Text>
+              <Text style={styles.metaData}>
                 {formatUptimePercent(
                   monitor.uptime,
                 )}{" "}
@@ -165,8 +167,11 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.textSecondary,
   },
+  metaData: {
+    ...typography.mono,
+    color: colors.textMuted,
+  },
   badge: {
-    ...typography.caption,
-    fontWeight: "700",
+    ...typography.label,
   },
 });

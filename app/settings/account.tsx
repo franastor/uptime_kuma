@@ -167,12 +167,14 @@ export default function AccountScreen() {
               </Text>
               <AppButton
                 title="Cerrar sesión"
+                variant="ghost"
                 onPress={() => {
                   void handleLogout();
                 }}
               />
               <AppButton
                 title="Configurar avisos push"
+                variant="ghost"
                 onPress={() =>
                   router.push(
                     "/settings/notifications",
@@ -246,6 +248,7 @@ export default function AccountScreen() {
                     ? "¿No tienes cuenta? Regístrate"
                     : "¿Ya tienes cuenta? Inicia sesión"
                 }
+                variant="ghost"
                 onPress={() => {
                   setMode(
                     mode === "login"
@@ -282,9 +285,10 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   email: {
-    ...typography.body,
-    color: colors.primary,
-    fontWeight: "700",
+    fontFamily: "MartianMono_400Regular",
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.text,
   },
   hint: {
     ...typography.caption,

@@ -129,9 +129,6 @@ const styles = StyleSheet.create({
   category: {
     ...typography.caption,
     color: colors.textMuted,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.4,
   },
   title: {
     ...typography.bodyMedium,

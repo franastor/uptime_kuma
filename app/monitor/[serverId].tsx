@@ -20,6 +20,10 @@ import {
 } from "@/src/modules/monitor/components/MonitorFilters";
 import { useMonitorPreferencesStore } from "@/src/modules/monitor/store/monitorPreferences.store";
 import { useMonitorStore } from "@/src/modules/monitor/store/monitor.store";
+import {
+  buildMonitorStatsKey,
+  useMonitorStatsStore,
+} from "@/src/modules/monitor/store/monitorStats.store";
 import type { Monitor } from "@/src/modules/monitor/types/monitor";
 import {
   collectAvailableTags,
@@ -112,6 +116,12 @@ export default function MonitorsScreen() {
     serverId ? state.monitorsByServer[serverId] : undefined,
   );
   const monitors = storedMonitors ?? EMPTY_MONITORS;
+  const statsByMonitor = useMonitorStatsStore(
+    (state) =>
+      serverId
+        ? state.statsByMonitor
+        : undefined,
+  );
   const loading = useMonitorStore((state) =>
     serverId ? state.loadingByServer[serverId] ?? false : false,
   );
@@ -393,7 +403,7 @@ export default function MonitorsScreen() {
               <MaterialIcons
                 name="timeline"
                 size={22}
-                color={colors.primary}
+                color={colors.textSecondary}
               />
             </Pressable>
 
@@ -417,7 +427,7 @@ export default function MonitorsScreen() {
               <MaterialIcons
                 name="settings"
                 size={22}
-                color={colors.primary}
+                color={colors.textSecondary}
               />
             </Pressable>
 
@@ -433,7 +443,17 @@ export default function MonitorsScreen() {
                   },
                 ]}
               />
-              <Text style={styles.connectionText}>
+              <Text
+                style={[
+                  styles.connectionText,
+                  {
+                    color:
+                      server.connectionStatus === "connected"
+                        ? colors.success
+                        : colors.warning,
+                  },
+                ]}
+              >
                 {server.connectionStatus === "connected"
                   ? "En directo"
                   : "Datos guardados"}
@@ -483,7 +503,7 @@ export default function MonitorsScreen() {
 
               <View style={styles.planBadge}>
                 <Text style={styles.planBadgeText}>
-                  {plan === "premium" ? "PREMIUM" : "FREE"}
+                  {plan === "premium" ? "Premium" : "Gratis"}
                 </Text>
               </View>
             </View>
@@ -503,7 +523,6 @@ export default function MonitorsScreen() {
                 label="Operativos"
                 value={summary.up}
                 icon="check-circle-outline"
-                accentColor={colors.success}
                 helper="Funcionando ahora"
               />
               <StatCard
@@ -529,7 +548,6 @@ export default function MonitorsScreen() {
                     : `${summary.averagePing} ms`
                 }
                 icon="speed"
-                accentColor={colors.info}
                 helper={`${summary.paused} pausados · ${summary.unknown} sin datos`}
               />
             </View>
@@ -626,8 +644,8 @@ export default function MonitorsScreen() {
                     <View style={styles.healthyIcon}>
                       <MaterialIcons
                         name="verified"
-                        size={26}
-                        color={colors.background}
+                        size={24}
+                        color={colors.primaryDark}
                       />
                     </View>
                     <View style={styles.healthyInformation}>
@@ -677,7 +695,7 @@ export default function MonitorsScreen() {
                       : "workspace-premium"
                   }
                   size={24}
-                  color={colors.background}
+                  color={colors.textSecondary}
                 />
               </View>
               <View style={styles.premiumInformation}>
@@ -697,11 +715,7 @@ export default function MonitorsScreen() {
                     : "lock"
                 }
                 size={20}
-                color={
-                  hasAdvancedDashboard
-                    ? colors.primary
-                    : colors.warning
-                }
+                color={colors.textMuted}
               />
             </Pressable>
 
@@ -722,8 +736,8 @@ export default function MonitorsScreen() {
               <View style={styles.favoriteCounter}>
                 <MaterialIcons
                   name="star"
-                  size={17}
-                  color={colors.warning}
+                  size={16}
+                  color={colors.textSecondary}
                 />
                 <Text style={styles.favoriteCounterText}>
                   {favorites.length}
@@ -749,7 +763,7 @@ export default function MonitorsScreen() {
                   <MaterialIcons
                     name="lock"
                     size={22}
-                    color={colors.background}
+                    color={colors.textSecondary}
                   />
                 </View>
                 <View style={styles.premiumInformation}>
@@ -772,7 +786,7 @@ export default function MonitorsScreen() {
                 <MaterialIcons
                   name="workspace-premium"
                   size={20}
-                  color={colors.warning}
+                  color={colors.textMuted}
                 />
               </Pressable>
             ) : null}
@@ -809,6 +823,16 @@ export default function MonitorsScreen() {
                   <MonitorCard
                     key={monitor.id}
                     monitor={monitor}
+                    uptime24h={
+                      statsByMonitor
+                        ? statsByMonitor[
+                            buildMonitorStatsKey(
+                              serverId,
+                              monitor.id,
+                            )
+                          ]?.uptime24h ?? null
+                        : null
+                    }
                     highlighted={
                       highlightedMonitorId ===
                       monitor.id
@@ -929,7 +953,7 @@ const styles = StyleSheet.create({
     height: 40,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 14,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
@@ -942,19 +966,13 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   serverUrl: {
-    ...typography.caption,
-    color: colors.textSecondary,
+    ...typography.mono,
+    color: colors.textMuted,
   },
   connectionBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 20,
-    backgroundColor: colors.surface,
   },
   connectionDot: {
     width: 8,
@@ -962,9 +980,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   connectionText: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    fontWeight: "600",
+    ...typography.label,
   },
   loadingCard: {
     alignItems: "center",
@@ -989,7 +1005,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.danger,
-    borderRadius: 18,
+    borderRadius: 14,
     backgroundColor: colors.surface,
   },
   errorTitle: {
@@ -1007,7 +1023,7 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 18,
+    borderRadius: 20,
     backgroundColor: colors.surface,
   },
   emptyTitle: {
@@ -1044,14 +1060,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: 20,
+    borderColor: colors.border,
+    borderRadius: 8,
     backgroundColor: colors.surfaceElevated,
   },
   planBadgeText: {
     ...typography.caption,
-    color: colors.primary,
-    fontWeight: "800",
+    color: colors.textSecondary,
   },
   statsGrid: {
     flexDirection: "row",
@@ -1081,7 +1096,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.sm,
-    borderRadius: 18,
+    borderRadius: 8,
     backgroundColor: colors.danger,
   },
   incidentCounterHealthy: {
@@ -1103,16 +1118,16 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.success,
-    borderRadius: 18,
+    borderColor: colors.border,
+    borderRadius: 14,
     backgroundColor: colors.surface,
   },
   healthyIcon: {
-    width: 46,
-    height: 46,
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 15,
+    borderRadius: 8,
     backgroundColor: colors.success,
   },
   healthyInformation: {
@@ -1133,9 +1148,9 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: 18,
-    backgroundColor: colors.surfaceElevated,
+    borderColor: colors.border,
+    borderRadius: 14,
+    backgroundColor: colors.surface,
   },
   premiumCardPressed: {
     opacity: 0.8,
@@ -1147,8 +1162,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.warning,
-    borderRadius: 18,
+    borderColor: colors.border,
+    borderRadius: 14,
     backgroundColor: colors.surfaceElevated,
   },
   premiumIcon: {
@@ -1156,8 +1171,8 @@ const styles = StyleSheet.create({
     height: 42,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 14,
-    backgroundColor: colors.primary,
+    borderRadius: 8,
+    backgroundColor: colors.surfaceElevated,
   },
   premiumInformation: {
     flex: 1,
@@ -1184,13 +1199,12 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    borderRadius: 20,
+    borderRadius: 8,
     backgroundColor: colors.surfaceElevated,
   },
   favoriteCounterText: {
-    ...typography.caption,
-    color: colors.warning,
-    fontWeight: "700",
+    ...typography.mono,
+    color: colors.textSecondary,
   },
   monitorList: {
     gap: spacing.md,
@@ -1198,13 +1212,12 @@ const styles = StyleSheet.create({
   listMeta: {
     ...typography.caption,
     color: colors.textMuted,
-    fontWeight: "700",
   },
   loadMoreButton: {
     minHeight: 48,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 14,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
@@ -1222,7 +1235,7 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 18,
+    borderRadius: 20,
     backgroundColor: colors.surface,
   },
 });

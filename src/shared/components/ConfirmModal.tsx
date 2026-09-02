@@ -104,10 +104,20 @@ export function ConfirmModal({
               {loading ? (
                 <ActivityIndicator
                   size="small"
-                  color={colors.background}
+                  color={
+                    destructive
+                      ? colors.background
+                      : colors.primaryDark
+                  }
                 />
               ) : (
-                <Text style={styles.confirmButtonText}>
+                <Text
+                  style={
+                    destructive
+                      ? styles.destructiveButtonText
+                      : styles.confirmButtonText
+                  }
+                >
                   {confirmLabel}
                 </Text>
               )}
@@ -136,8 +146,8 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 24,
-    backgroundColor: colors.surface,
+    borderRadius: 20,
+    backgroundColor: colors.surfaceElevated,
   },
 
   iconContainer: {
@@ -152,7 +162,7 @@ const styles = StyleSheet.create({
 
   icon: {
     fontSize: 26,
-    fontWeight: "800",
+    fontFamily: "FamiljenGrotesk_700Bold",
     color: colors.danger,
   },
 
@@ -182,7 +192,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.md,
-    borderRadius: 14,
+    borderRadius: 8,
   },
 
   cancelButton: {
@@ -205,6 +215,11 @@ const styles = StyleSheet.create({
   },
 
   confirmButtonText: {
+    ...typography.bodyMedium,
+    color: colors.primaryDark,
+  },
+
+  destructiveButtonText: {
     ...typography.bodyMedium,
     color: colors.background,
   },
