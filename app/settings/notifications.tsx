@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Linking,
+  Platform,
   Pressable,
   StyleSheet,
   Switch,
@@ -157,7 +158,25 @@ export default function NotificationSettingsScreen() {
     });
   }
 
+  async function openSystemSettings(): Promise<void> {
+    if (Platform.OS === "web") {
+      Alert.alert(
+        "No disponible en el navegador",
+        "Los permisos de notificación se gestionan desde la app móvil.",
+      );
+      return;
+    }
+    void Linking.openSettings();
+  }
+
   async function handleEnablePush(): Promise<void> {
+    if (Platform.OS === "web") {
+      Alert.alert(
+        "No disponible en el navegador",
+        "Activa los avisos push desde la app móvil de KumaPulse.",
+      );
+      return;
+    }
     const granted =
       await notificationService.requestPermissions();
     const state =
@@ -238,14 +257,14 @@ export default function NotificationSettingsScreen() {
                 <AppButton
                   title="Ajustes del sistema (desactivar)"
                   onPress={() => {
-                    void Linking.openSettings();
+                    void openSystemSettings();
                   }}
                 />
               ) : pushPermission === "denied" ? (
                 <AppButton
                   title="Permiso denegado — abrir ajustes"
                   onPress={() => {
-                    void Linking.openSettings();
+                    void openSystemSettings();
                   }}
                 />
               ) : (

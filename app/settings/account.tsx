@@ -107,8 +107,8 @@ export default function AccountScreen() {
           : "Has iniciado sesión. Activa las notificaciones para recibir avisos push.",
         [
           {
-            text: "Aceptar",
-            onPress: () => router.back(),
+            text: "Ir a mis servidores",
+            onPress: () => router.replace("/"),
           },
         ],
       );
@@ -165,6 +165,13 @@ export default function AccountScreen() {
                 cuenta. Los avisos de tus servidores
                 solo llegarán a tus dispositivos.
               </Text>
+              <AppButton
+                title="Ir a mis servidores"
+                variant="primary"
+                onPress={() =>
+                  router.replace("/")
+                }
+              />
               <AppButton
                 title="Cerrar sesión"
                 variant="ghost"
