@@ -171,6 +171,9 @@ export default function AddServerScreen() {
     setPasswordError,
   ] = useState<string>();
 
+  const [submitError, setSubmitError] =
+    useState<string>();
+
   useEffect(() => {
     if (!hydrated) {
       void hydrate();
@@ -315,6 +318,7 @@ export default function AddServerScreen() {
   }
 
   async function handleSave(): Promise<void> {
+    setSubmitError(undefined);
     if (!validateForm()) {
       return;
     }
@@ -369,15 +373,20 @@ export default function AddServerScreen() {
         error,
       );
 
-      Alert.alert(
-        isEditing
-          ? "No se pudo actualizar"
-          : "No se pudo guardar",
-
+      const message =
         error instanceof Error
           ? error.message
-          : "Ha ocurrido un error al guardar el servidor.",
-      );
+          : "Ha ocurrido un error al guardar el servidor.";
+      setSubmitError(message);
+
+      if (Platform.OS !== "web") {
+        Alert.alert(
+          isEditing
+            ? "No se pudo actualizar"
+            : "No se pudo guardar",
+          message,
+        );
+      }
     }
   }
 
@@ -598,6 +607,12 @@ export default function AddServerScreen() {
               }
             />
 
+            {submitError ? (
+              <Text style={styles.submitError}>
+                {submitError}
+              </Text>
+            ) : null}
+
             <AppButton
               title="Cancelar"
               variant="ghost"
@@ -652,6 +667,12 @@ const styles =
 
     form: {
       gap: spacing.xl,
+    },
+
+    submitError: {
+      ...typography.caption,
+      color: colors.danger,
+      textAlign: "center",
     },
 
     switchCard: {

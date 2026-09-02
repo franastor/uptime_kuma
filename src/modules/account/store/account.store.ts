@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { create } from "zustand";
 
@@ -42,7 +43,9 @@ async function saveSession(
 ): Promise<void> {
   if (!session) {
     await AsyncStorage.removeItem(ACCOUNT_STORAGE_KEY);
-    await SecureStore.deleteItemAsync(ACCOUNT_SECURE_KEY);
+    if (Platform.OS !== "web") {
+      await SecureStore.deleteItemAsync(ACCOUNT_SECURE_KEY);
+    }
     return;
   }
 

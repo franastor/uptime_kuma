@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
 
 import type {
   KumaServer,
@@ -10,6 +11,36 @@ import type {
 const SERVERS_STORAGE_KEY = "kuma.servers";
 const ACTIVE_SERVER_STORAGE_KEY = "kuma.activeServerId";
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
+
+// expo-secure-store NO existe en web (tira al usarlo). En navegador
+// guardamos en AsyncStorage (localStorage) con prefijo propio; en nativo
+// seguimos usando SecureStore. Así añadir/editar/borrar/conectar funciona
+// en ambas plataformas.
+const IS_WEB = Platform.OS === "web";
+const WEB_SECURE_PREFIX = "kuma.secure.";
+
+async function secureSetItem(key: string, value: string): Promise<void> {
+  if (IS_WEB) {
+    await AsyncStorage.setItem(WEB_SECURE_PREFIX + key, value);
+    return;
+  }
+  await SecureStore.setItemAsync(key, value);
+}
+
+async function secureGetItem(key: string): Promise<string | null> {
+  if (IS_WEB) {
+    return AsyncStorage.getItem(WEB_SECURE_PREFIX + key);
+  }
+  return SecureStore.getItemAsync(key);
+}
+
+async function secureDeleteItem(key: string): Promise<void> {
+  if (IS_WEB) {
+    await AsyncStorage.removeItem(WEB_SECURE_PREFIX + key);
+    return;
+  }
+  await SecureStore.deleteItemAsync(key);
+}
 
 function getCredentialsKey(serverId: string) {
   return `kuma.credentials.${serverId}`;
@@ -47,7 +78,7 @@ export async function saveServerCredentials(
   serverId: string,
   credentials: KumaServerCredentials,
 ): Promise<void> {
-  await SecureStore.setItemAsync(
+  await secureSetItem(
     getCredentialsKey(serverId),
     JSON.stringify(credentials),
   );
@@ -56,7 +87,7 @@ export async function saveServerCredentials(
 export async function getServerCredentials(
   serverId: string,
 ): Promise<KumaServerCredentials | null> {
-  const storedValue = await SecureStore.getItemAsync(
+  const storedValue = await secureGetItem(
     getCredentialsKey(serverId),
   );
 
@@ -67,7 +98,7 @@ export async function getServerCredentials(
   try {
     return JSON.parse(storedValue) as KumaServerCredentials;
   } catch {
-    await SecureStore.deleteItemAsync(getCredentialsKey(serverId));
+    await secureDeleteItem(getCredentialsKey(serverId));
     return null;
   }
 }
@@ -75,14 +106,14 @@ export async function getServerCredentials(
 export async function deleteServerCredentials(
   serverId: string,
 ): Promise<void> {
-  await SecureStore.deleteItemAsync(getCredentialsKey(serverId));
+  await secureDeleteItem(getCredentialsKey(serverId));
 }
 
 export async function saveServerSession(
   serverId: string,
   session: KumaServerSession,
 ): Promise<void> {
-  await SecureStore.setItemAsync(
+  await secureSetItem(
     getSessionKey(serverId),
     JSON.stringify(session),
   );
@@ -91,7 +122,7 @@ export async function saveServerSession(
 export async function getServerSession(
   serverId: string,
 ): Promise<KumaServerSession | null> {
-  const storedValue = await SecureStore.getItemAsync(
+  const storedValue = await secureGetItem(
     getSessionKey(serverId),
   );
 
@@ -133,7 +164,7 @@ export async function getServerSession(
 export async function deleteServerSession(
   serverId: string,
 ): Promise<void> {
-  await SecureStore.deleteItemAsync(
+  await secureDeleteItem(
     getSessionKey(serverId),
   );
 }
