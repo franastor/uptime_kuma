@@ -1,4 +1,7 @@
 export const es = {
+  branding: {
+    tagline: "El pulso de tu uptime, en el bolsillo.",
+  },
   common: {
     back: "Volver",
     understood: "Entendido",
@@ -31,7 +34,7 @@ export const es = {
     securityHint: "Contraseña maestra y huella",
     backup: "Copia de servidores",
     backupHint: "Exportar e importar · Premium",
-    devOnly: "SOLO DESARROLLO",
+    devOnly: "Solo desarrollo",
     premiumPlan: "Plan Premium",
     premiumPlanHint:
       "Actívalo para probar el Dashboard avanzado. Desactívalo para ver el candado Free.",
@@ -145,8 +148,8 @@ export const es = {
     searchPlaceholder: "Buscar nombre, URL o etiqueta",
     clearSearch: "Limpiar búsqueda",
     filterAll: "Todos",
-    filterUp: "UP",
-    filterDown: "DOWN",
+    filterUp: "Operativos",
+    filterDown: "Caídos",
     filterPaused: "Pausados",
     filterFavorites: "Favoritos",
     tags: "Etiquetas",

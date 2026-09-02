@@ -1,6 +1,9 @@
 import type { TranslationTree } from "@/src/shared/i18n/locales/es";
 
 export const en: TranslationTree = {
+  branding: {
+    tagline: "The pulse of your uptime, in your pocket.",
+  },
   common: {
     back: "Back",
     understood: "Got it",
@@ -32,7 +35,7 @@ export const en: TranslationTree = {
     securityHint: "Master password and biometrics",
     backup: "Server backup",
     backupHint: "Export and import · Premium",
-    devOnly: "DEV ONLY",
+    devOnly: "Dev only",
     premiumPlan: "Premium plan",
     premiumPlanHint:
       "Turn it on to try the advanced dashboard. Turn it off to see Free locks.",
@@ -145,8 +148,8 @@ export const en: TranslationTree = {
     searchPlaceholder: "Search name, URL or tag",
     clearSearch: "Clear search",
     filterAll: "All",
-    filterUp: "UP",
-    filterDown: "DOWN",
+    filterUp: "Up",
+    filterDown: "Down",
     filterPaused: "Paused",
     filterFavorites: "Favorites",
     tags: "Tags",

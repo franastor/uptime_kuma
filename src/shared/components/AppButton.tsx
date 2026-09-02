@@ -15,16 +15,20 @@ import {
 type AppButtonProps = PressableProps & {
   title: string;
   loading?: boolean;
+  variant?: "primary" | "ghost" | "danger";
 };
 
 export function AppButton({
   title,
   loading = false,
   disabled,
+  variant = "primary",
   style,
   ...props
 }: AppButtonProps) {
   const isDisabled = disabled || loading;
+  const isPrimary = variant === "primary";
+  const isDanger = variant === "danger";
 
   return (
     <Pressable
@@ -32,15 +36,31 @@ export function AppButton({
       disabled={isDisabled}
       style={(state) => [
         styles.button,
+        variant === "ghost" && styles.ghost,
+        isDanger && styles.danger,
         state.pressed && !isDisabled && styles.pressed,
         isDisabled && styles.disabled,
         typeof style === "function" ? style(state) : style,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={colors.background} />
+        <ActivityIndicator
+          color={
+            isPrimary || isDanger
+              ? colors.primaryDark
+              : colors.primary
+          }
+        />
       ) : (
-        <Text style={styles.text}>{title}</Text>
+        <Text
+          style={[
+            styles.text,
+            variant === "ghost" && styles.ghostText,
+            isDanger && styles.dangerText,
+          ]}
+        >
+          {title}
+        </Text>
       )}
     </Pressable>
   );
@@ -52,13 +72,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.xl,
-    borderRadius: 16,
+    borderRadius: 8,
     backgroundColor: colors.primary,
   },
 
+  ghost: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.transparent,
+  },
+
+  danger: {
+    backgroundColor: colors.danger,
+  },
+
   pressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.99 }],
+    opacity: 0.8,
   },
 
   disabled: {
@@ -67,6 +96,14 @@ const styles = StyleSheet.create({
 
   text: {
     ...typography.button,
+    color: colors.primaryDark,
+  },
+
+  ghostText: {
+    color: colors.text,
+  },
+
+  dangerText: {
     color: colors.background,
   },
 });

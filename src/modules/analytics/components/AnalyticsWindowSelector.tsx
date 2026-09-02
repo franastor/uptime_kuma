@@ -54,22 +54,24 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   chip: {
+    minHeight: 36,
+    justifyContent: "center",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 999,
+    borderRadius: 8,
     backgroundColor: colors.surfaceElevated,
   },
   chipSelected: {
-    borderColor: colors.primary,
+    borderColor: colors.text,
+    backgroundColor: colors.text,
   },
   chipText: {
     ...typography.caption,
     color: colors.textSecondary,
-    fontWeight: "700",
   },
   chipTextSelected: {
-    color: colors.primary,
+    color: colors.background,
   },
 });

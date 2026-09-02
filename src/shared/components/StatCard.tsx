@@ -20,6 +20,7 @@ type StatCardProps = {
   label: string;
   value: string | number;
   icon: MaterialIconName;
+  /** Color semántico del valor (solo estado: rojo = algo roto). Neutro por defecto. */
   accentColor?: string;
   helper?: string;
 };
@@ -28,29 +29,29 @@ export function StatCard({
   label,
   value,
   icon,
-  accentColor = colors.primary,
+  accentColor,
   helper,
 }: StatCardProps) {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <View
-          style={[
-            styles.iconContainer,
-            { borderColor: accentColor },
-          ]}
-        >
+        <View style={styles.iconContainer}>
           <MaterialIcons
             name={icon}
             size={18}
-            color={accentColor}
+            color={colors.textMuted}
           />
         </View>
 
         <Text style={styles.label}>{label}</Text>
       </View>
 
-      <Text style={[styles.value, { color: accentColor }]}>
+      <Text
+        style={[
+          styles.value,
+          accentColor ? { color: accentColor } : null,
+        ]}
+      >
         {value}
       </Text>
 
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 18,
+    borderRadius: 14,
     backgroundColor: colors.surface,
   },
 
@@ -85,8 +86,7 @@ const styles = StyleSheet.create({
     height: 32,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderRadius: 10,
+    borderRadius: 8,
     backgroundColor: colors.surfaceElevated,
   },
 
@@ -94,13 +94,13 @@ const styles = StyleSheet.create({
     ...typography.caption,
     flex: 1,
     color: colors.textSecondary,
-    fontWeight: "600",
   },
 
   value: {
+    fontFamily: "MartianMono_500Medium",
     fontSize: 28,
     lineHeight: 32,
-    fontWeight: "800",
+    color: colors.text,
   },
 
   helper: {

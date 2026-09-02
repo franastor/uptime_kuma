@@ -154,7 +154,7 @@ export function VaultLockOverlay() {
           <MaterialIcons
             name="lock"
             size={28}
-            color={colors.primary}
+            color={colors.textSecondary}
           />
         </View>
         <Text style={styles.title}>
@@ -222,7 +222,7 @@ export function VaultLockOverlay() {
             <MaterialIcons
               name="fingerprint"
               size={22}
-              color={colors.primary}
+              color={colors.textSecondary}
             />
             <Text style={styles.secondaryButtonText}>
               {t("vault.useBiometric")}

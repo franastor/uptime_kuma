@@ -7,7 +7,6 @@ import { MonitorTagList } from "@/src/modules/monitor/components/MonitorTagList"
 import type { Monitor } from "@/src/modules/monitor/types/monitor";
 import {
   formatHeartbeatDate,
-  getMonitorStatusInformation,
   getMonitorTypeIcon,
   getMonitorTypeLabel,
 } from "@/src/modules/monitor/utils/monitorPresentation";
@@ -17,19 +16,93 @@ interface MonitorCardProps {
   monitor: Monitor;
   favorite: boolean;
   highlighted?: boolean;
+  /** Uptime 24 h servido por Uptime Kuma (socket); se usa antes que monitor.uptime. */
+  uptime24h?: number | null;
   onToggleFavorite: () => void;
   onPress?: () => void;
+}
+
+function formatUptimePercent(value: number | null): string {
+  if (value === null) {
+    return "—";
+  }
+
+  const percent = value > 1 ? value : value * 100;
+
+  return `${percent
+    .toFixed(percent >= 100 ? 0 : 2)
+    .replace(".", ",")} %`;
+}
+
+function formatDownSince(
+  lastHeartbeatAt: string | null,
+  now = Date.now(),
+): string | null {
+  if (!lastHeartbeatAt) {
+    return null;
+  }
+
+  const timestamp = new Date(lastHeartbeatAt).getTime();
+
+  if (Number.isNaN(timestamp)) {
+    return null;
+  }
+
+  const elapsedSeconds = Math.max(
+    0,
+    Math.floor((now - timestamp) / 1_000),
+  );
+
+  if (elapsedSeconds < 10) {
+    return "caído hace un momento";
+  }
+
+  if (elapsedSeconds < 60) {
+    return `caído hace ${elapsedSeconds} s`;
+  }
+
+  const minutes = Math.floor(elapsedSeconds / 60);
+
+  if (minutes < 60) {
+    return `caído hace ${minutes} min`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const remMinutes = minutes % 60;
+
+  if (hours < 24) {
+    return remMinutes > 0
+      ? `caído hace ${hours} h ${remMinutes} min`
+      : `caído hace ${hours} h`;
+  }
+
+  const days = Math.floor(hours / 24);
+  const remHours = hours % 24;
+
+  return remHours > 0
+    ? `caído hace ${days} d ${remHours} h`
+    : `caído hace ${days} d`;
 }
 
 export function MonitorCard({
   monitor,
   favorite,
   highlighted = false,
+  uptime24h,
   onToggleFavorite,
   onPress,
 }: MonitorCardProps) {
-  const status = getMonitorStatusInformation(monitor);
+  const isDown =
+    monitor.active && monitor.status === "down";
   const typeIcon = getMonitorTypeIcon(monitor.type);
+  const downSince = isDown
+    ? formatDownSince(monitor.lastHeartbeatAt)
+    : null;
+  const heartbeatLabel = formatHeartbeatDate(
+    monitor.lastHeartbeatAt,
+  );
+  const pingLabel =
+    monitor.ping === null ? "—" : `${monitor.ping} ms`;
 
   return (
     <Pressable
@@ -40,97 +113,79 @@ export function MonitorCard({
         pressed && onPress ? styles.pressed : null,
       ]}
     >
-      <View
-        style={[
-          styles.statusBar,
-          { backgroundColor: status.color },
-        ]}
-      />
-
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <View style={styles.identity}>
-            <View style={styles.iconContainer}>
-              <MaterialIcons
-                name={typeIcon}
-                size={22}
-                color={colors.primary}
-              />
-            </View>
-
-            <View style={styles.titleContainer}>
-              <Text style={styles.name} numberOfLines={1}>
-                {monitor.name}
-              </Text>
-              <Text style={styles.type}>
-                {getMonitorTypeLabel(monitor.type)}
-              </Text>
-            </View>
-          </View>
-
-          <FavoriteButton
-            favorite={favorite}
-            onPress={onToggleFavorite}
+      <View style={styles.headerRow}>
+        <View style={styles.iconContainer}>
+          <MaterialIcons
+            name={typeIcon}
+            size={20}
+            color={colors.textSecondary}
           />
         </View>
 
-        <View style={styles.statusRow}>
-          <MonitorStatusBadge monitor={monitor} />
-
-          <View style={styles.pingChip}>
-            <MaterialIcons
-              name="speed"
-              size={15}
-              color={colors.info}
-            />
-            <Text style={styles.pingText}>
-              {monitor.ping === null ? "—" : `${monitor.ping} ms`}
-            </Text>
-          </View>
+        <View style={styles.identity}>
+          <Text style={styles.name} numberOfLines={1}>
+            {monitor.name}
+          </Text>
+          <Text style={styles.subline} numberOfLines={1}>
+            {getMonitorTypeLabel(monitor.type)}
+            {monitor.interval
+              ? ` · cada ${monitor.interval} s`
+              : ""}
+          </Text>
         </View>
 
-        {monitor.target ? (
-          <Text style={styles.target} numberOfLines={1}>
-            {monitor.target}
+        <FavoriteButton
+          favorite={favorite}
+          onPress={onToggleFavorite}
+        />
+      </View>
+
+      <View style={styles.statusRow}>
+        <View style={styles.statusColumn}>
+          <MonitorStatusBadge monitor={monitor} liveRegion />
+          <Text style={styles.uptime}>
+            {formatUptimePercent(
+              uptime24h ?? monitor.uptime,
+            )}
           </Text>
-        ) : null}
-
-        {monitor.description ? (
-          <Text style={styles.description} numberOfLines={2}>
-            {monitor.description}
-          </Text>
-        ) : null}
-
-        <MonitorTagList tags={monitor.tags} />
-
-        <View style={styles.footer}>
-          <View style={styles.footerItem}>
-            <MaterialIcons
-              name="schedule"
-              size={15}
-              color={colors.textMuted}
-            />
-            <Text style={styles.footerText}>
-              {formatHeartbeatDate(monitor.lastHeartbeatAt)}
+          {downSince ? (
+            <Text style={styles.downSince}>
+              {downSince}
             </Text>
-          </View>
-
-          <Text style={styles.intervalText}>
-            {monitor.interval ? `Cada ${monitor.interval} s` : "Intervalo —"}
-          </Text>
+          ) : null}
         </View>
       </View>
+
+      {monitor.target ? (
+        <Text style={styles.target} numberOfLines={1}>
+          {monitor.target}
+        </Text>
+      ) : null}
+
+      {monitor.description ? (
+        <Text style={styles.description} numberOfLines={2}>
+          {monitor.description}
+        </Text>
+      ) : null}
+
+      <MonitorTagList tags={monitor.tags} />
+
+      <Text style={styles.footer} numberOfLines={1}>
+        {monitor.lastHeartbeatAt
+          ? `${heartbeatLabel} · ${pingLabel} ping`
+          : "Sin comprobaciones todavía"}
+      </Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: "row",
-    overflow: "hidden",
+    gap: spacing.xs,
+    padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 20,
+    borderRadius: 14,
     backgroundColor: colors.surface,
   },
   highlighted: {
@@ -141,91 +196,66 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.82,
   },
-  statusBar: {
-    width: 5,
-  },
-  content: {
-    flex: 1,
-    gap: spacing.md,
-    padding: spacing.lg,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.sm,
-  },
-  identity: {
-    flex: 1,
+  headerRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
   },
   iconContainer: {
-    width: 42,
-    height: 42,
+    width: 40,
+    height: 40,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 14,
+    borderRadius: 8,
     backgroundColor: colors.surfaceElevated,
   },
-  titleContainer: {
+  identity: {
     flex: 1,
+    gap: 2,
   },
   name: {
-    ...typography.bodyMedium,
+    fontFamily: "FamiljenGrotesk_600SemiBold",
+    fontSize: 15,
+    lineHeight: 20,
     color: colors.text,
   },
-  type: {
+  subline: {
     ...typography.caption,
-    color: colors.primary,
-    fontWeight: "700",
+    color: colors.textMuted,
   },
   statusRow: {
     flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: spacing.sm,
+    justifyContent: "flex-end",
+    marginTop: spacing.xs,
   },
-  pingChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: 20,
-    backgroundColor: colors.surfaceElevated,
+  statusColumn: {
+    maxWidth: "72%",
+    alignItems: "flex-end",
+    gap: 2,
   },
-  pingText: {
-    ...typography.caption,
-    color: colors.info,
-    fontWeight: "700",
+  uptime: {
+    ...typography.monoMedium,
+    color: colors.textSecondary,
+  },
+  downSince: {
+    fontFamily: "FamiljenGrotesk_600SemiBold",
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: "right",
+    color: colors.text,
   },
   target: {
-    ...typography.caption,
-    color: colors.textSecondary,
+    ...typography.mono,
+    marginTop: spacing.xs,
+    color: colors.textMuted,
   },
   description: {
     ...typography.caption,
     color: colors.textMuted,
   },
   footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.sm,
-  },
-  footerItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-  },
-  footerText: {
-    ...typography.caption,
-    color: colors.textMuted,
-  },
-  intervalText: {
-    ...typography.caption,
+    ...typography.mono,
+    marginTop: spacing.xs,
     color: colors.textMuted,
   },
 });

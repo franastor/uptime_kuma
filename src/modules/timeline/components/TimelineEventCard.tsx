@@ -21,7 +21,7 @@ function getStatusColor(
     case "pending":
       return colors.warning;
     case "maintenance":
-      return colors.info;
+      return colors.warning;
     default:
       return colors.textMuted;
   }
@@ -58,14 +58,7 @@ export function TimelineEventCard({
         pressed && onPress ? styles.pressed : null,
       ]}
     >
-      <View
-        style={[
-          styles.statusBar,
-          { backgroundColor: accentColor },
-        ]}
-      />
-
-      <View style={styles.content}>
+        <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.monitorName} numberOfLines={1}>
             {event.monitorName}
@@ -153,13 +146,11 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   statusLabel: {
-    ...typography.caption,
-    fontWeight: "800",
+    ...typography.label,
   },
   serverName: {
     ...typography.caption,
-    color: colors.primary,
-    fontWeight: "700",
+    color: colors.textMuted,
   },
   message: {
     ...typography.caption,
@@ -177,9 +168,8 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   ping: {
-    ...typography.caption,
+    ...typography.mono,
     marginLeft: "auto",
-    color: colors.info,
-    fontWeight: "700",
+    color: colors.textSecondary,
   },
 });

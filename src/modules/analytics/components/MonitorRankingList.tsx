@@ -126,10 +126,11 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   rank: {
-    ...typography.heading,
-    fontSize: 18,
+    fontFamily: "MartianMono_400Regular",
+    fontSize: 15,
+    lineHeight: 20,
     width: 24,
-    color: colors.primary,
+    color: colors.textMuted,
   },
   info: {
     flex: 1,
@@ -152,11 +153,13 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   uptime: {
-    ...typography.bodyMedium,
+    fontFamily: "MartianMono_500Medium",
+    fontSize: 15,
+    lineHeight: 20,
     color: colors.text,
   },
   ping: {
-    ...typography.caption,
+    ...typography.mono,
     color: colors.textMuted,
   },
 });

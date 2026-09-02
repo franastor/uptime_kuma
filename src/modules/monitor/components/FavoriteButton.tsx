@@ -34,7 +34,7 @@ export function FavoriteButton({
       <MaterialIcons
         name={favorite ? "star" : "star-border"}
         size={24}
-        color={favorite ? colors.warning : colors.textMuted}
+        color={favorite ? colors.text : colors.textMuted}
       />
     </Pressable>
   );
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     height: 40,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 12,
+    borderRadius: 8,
   },
   pressed: {
     opacity: 0.6,

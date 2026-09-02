@@ -20,7 +20,7 @@ type CardProps = {
   label: string;
   value: string;
   helper: string;
-  color: string;
+  color?: string;
 };
 
 function Card({
@@ -28,7 +28,7 @@ function Card({
   label,
   value,
   helper,
-  color,
+  color = colors.text,
 }: CardProps) {
   return (
     <View style={styles.card}>
@@ -36,7 +36,7 @@ function Card({
         <MaterialIcons
           name={icon}
           size={18}
-          color={color}
+          color={colors.textMuted}
         />
         <Text style={styles.cardLabel}>
           {label}
@@ -68,7 +68,6 @@ export function AnalyticsSummaryCards({
             ? "Preferencia: stats 24 h de Kuma"
             : "Preferencia: uptime 30 d de Kuma"
         }
-        color={colors.success}
       />
       <Card
         icon="timer-off"
@@ -80,7 +79,7 @@ export function AnalyticsSummaryCards({
         color={
           summary.totalDowntimeMs > 0
             ? colors.danger
-            : colors.success
+            : undefined
         }
       />
       <Card
@@ -90,28 +89,29 @@ export function AnalyticsSummaryCards({
           "es-ES",
         )}
         helper={`${summary.monitorCount} monitores activos`}
-        color={colors.warning}
+        color={
+          summary.totalIncidents > 0
+            ? colors.danger
+            : undefined
+        }
       />
       <Card
         icon="speed"
         label="Ping medio"
         value={formatPingMs(summary.averagePing)}
         helper="Media 24 h de Kuma / último ping"
-        color={colors.info}
       />
       <Card
         icon="build"
         label="MTTR"
         value={formatDurationMs(summary.mttrMs)}
         helper="Tiempo medio de recuperación"
-        color={colors.primary}
       />
       <Card
         icon="schedule"
         label="MTBF"
         value={formatDurationMs(summary.mtbfMs)}
         helper="Tiempo medio entre fallos"
-        color={colors.primary}
       />
       <Card
         icon="verified"
@@ -157,12 +157,11 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   cardLabel: {
-    ...typography.caption,
+    ...typography.label,
     color: colors.textSecondary,
-    fontWeight: "600",
   },
   cardValue: {
-    ...typography.heading,
+    fontFamily: "MartianMono_500Medium",
     fontSize: 20,
     lineHeight: 26,
   },

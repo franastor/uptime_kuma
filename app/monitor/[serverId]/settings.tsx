@@ -79,6 +79,7 @@ export default function ServerSettingsScreen() {
           </Text>
           <AppButton
             title="Volver"
+            variant="ghost"
             onPress={() => router.back()}
           />
         </Screen>
@@ -131,7 +132,7 @@ export default function ServerSettingsScreen() {
               <MaterialIcons
                 name="workspace-premium"
                 size={22}
-                color={colors.background}
+                color={colors.textSecondary}
               />
             </View>
             <View style={styles.premiumInformation}>
@@ -147,7 +148,7 @@ export default function ServerSettingsScreen() {
             <MaterialIcons
               name="lock"
               size={20}
-              color={colors.warning}
+              color={colors.textMuted}
             />
           </View>
         )}
@@ -157,7 +158,7 @@ export default function ServerSettingsScreen() {
             <MaterialIcons
               name="notifications-active"
               size={20}
-              color={colors.primary}
+              color={colors.textSecondary}
             />
             <Text style={styles.pushTitle}>
               Push / Webhook
@@ -246,17 +247,17 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: 16,
+    borderColor: colors.border,
+    borderRadius: 14,
     padding: spacing.lg,
   },
   premiumIcon: {
     width: 40,
     height: 40,
-    borderRadius: 14,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.primary,
+    backgroundColor: colors.surfaceElevated,
   },
   premiumInformation: {
     flex: 1,
@@ -290,7 +291,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 16,
+    borderRadius: 14,
     padding: spacing.lg,
     gap: spacing.sm,
   },
@@ -302,7 +303,6 @@ const styles = StyleSheet.create({
   pushTitle: {
     ...typography.bodyMedium,
     color: colors.text,
-    fontWeight: "800",
   },
   pushDescription: {
     ...typography.caption,

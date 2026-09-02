@@ -43,7 +43,7 @@ export function ExportButton({
           name={locked ? "lock" : "file-download"}
           size={22}
           color={
-            locked ? colors.textMuted : colors.primary
+            locked ? colors.textMuted : colors.textSecondary
           }
         />
       </View>
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   icon: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.surfaceElevated,

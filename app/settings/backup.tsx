@@ -605,12 +605,12 @@ export default function BackupSettingsScreen() {
                     }
                     trackColor={{
                       false: colors.border,
-                      true: colors.primaryDark,
+                      true: colors.primary,
                     }}
                     thumbColor={
                       duplicateMode === "overwrite"
-                        ? colors.primary
-                        : colors.textMuted
+                        ? colors.primaryDark
+                        : colors.textSecondary
                     }
                   />
                 </View>
@@ -631,7 +631,7 @@ export default function BackupSettingsScreen() {
                     onValueChange={setImportAppSettings}
                     trackColor={{
                       false: colors.border,
-                      true: colors.primaryDark,
+                      true: colors.primary,
                     }}
                     thumbColor={
                       importAppSettings
@@ -751,9 +751,8 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   link: {
-    ...typography.caption,
+    ...typography.label,
     color: colors.primary,
-    fontWeight: "700",
   },
   input: {
     minHeight: 48,

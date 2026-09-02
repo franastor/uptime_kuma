@@ -377,6 +377,7 @@ export default function AnalyticsScreen() {
           </Text>
           <AppButton
             title={t("common.back")}
+            variant="ghost"
             onPress={() => router.back()}
           />
         </Screen>
@@ -403,7 +404,7 @@ export default function AnalyticsScreen() {
             <MaterialIcons
               name="workspace-premium"
               size={36}
-              color={colors.background}
+              color={colors.textSecondary}
             />
           </View>
           <Text style={styles.notFoundTitle}>
@@ -414,6 +415,7 @@ export default function AnalyticsScreen() {
           </Text>
           <AppButton
             title={t("common.back")}
+            variant="ghost"
             onPress={() => router.back()}
           />
         </Screen>
@@ -456,7 +458,7 @@ export default function AnalyticsScreen() {
             <MaterialIcons
               name="info-outline"
               size={18}
-              color={colors.warning}
+              color={colors.textMuted}
             />
             <Text style={styles.noticeText}>
               Parte de las métricas se estiman con
@@ -498,7 +500,7 @@ export default function AnalyticsScreen() {
                   color={
                     selected
                       ? colors.background
-                      : colors.primary
+                      : colors.textSecondary
                   }
                 />
                 <Text
@@ -682,7 +684,7 @@ export default function AnalyticsScreen() {
             <MaterialIcons
               name="chevron-right"
               size={20}
-              color={colors.primary}
+              color={colors.textMuted}
             />
           </Pressable>
         </Section>
@@ -799,7 +801,7 @@ export default function AnalyticsScreen() {
             <MaterialIcons
               name="chevron-right"
               size={20}
-              color={colors.primary}
+              color={colors.textMuted}
             />
           </Pressable>
         </Section>
@@ -912,10 +914,12 @@ const styles = StyleSheet.create({
   lockIcon: {
     width: 72,
     height: 72,
-    borderRadius: 24,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.primary,
+    backgroundColor: colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   notFoundTitle: {
     ...typography.heading,
@@ -975,8 +979,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   moduleButtonSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primary,
+    borderColor: colors.text,
+    backgroundColor: colors.text,
   },
   moduleButtonPressed: {
     opacity: 0.75,
@@ -985,7 +989,6 @@ const styles = StyleSheet.create({
     ...typography.caption,
     flex: 1,
     color: colors.text,
-    fontWeight: "700",
   },
   moduleButtonTextSelected: {
     color: colors.background,

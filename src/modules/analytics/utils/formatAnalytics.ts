@@ -173,7 +173,7 @@ export function getInsightColor(
     case "warning":
       return colors.warning;
     default:
-      return colors.info;
+      return colors.textSecondary;
   }
 }
 

@@ -32,12 +32,18 @@ function getStatusColor(
     case "down":
       return colors.danger;
     case "pending":
-      return colors.warning;
     case "maintenance":
-      return colors.info;
+      return colors.warning;
+    case "unknown":
     default:
-      return colors.border;
+      return colors.textMuted;
   }
+}
+
+function isFilledStatus(
+  status: MonitorStatus,
+): boolean {
+  return status !== "unknown";
 }
 
 function formatBucketRange(
@@ -63,6 +69,7 @@ const LEGEND: {
   { status: "up", label: "UP" },
   { status: "down", label: "DOWN" },
   { status: "pending", label: "Pendiente" },
+  { status: "maintenance", label: "Mantenimiento" },
   { status: "unknown", label: "Sin datos" },
 ];
 
@@ -141,10 +148,12 @@ export function MonitorAvailabilityGrid({
             }, ${formatBucketRange(bucket)}`}
             style={[
               styles.bucket,
-              {
-                backgroundColor:
-                  getStatusColor(bucket.status),
-              },
+              isFilledStatus(bucket.status)
+                ? {
+                    backgroundColor:
+                      getStatusColor(bucket.status),
+                  }
+                : styles.bucketEmpty,
             ]}
           />
         ))}
@@ -194,23 +203,25 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   windowChip: {
+    minHeight: 32,
+    justifyContent: "center",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 999,
+    borderRadius: 8,
     backgroundColor: colors.surfaceElevated,
   },
   windowChipSelected: {
-    borderColor: colors.primary,
+    borderColor: colors.text,
+    backgroundColor: colors.text,
   },
   windowChipText: {
     ...typography.caption,
     color: colors.textSecondary,
-    fontWeight: "700",
   },
   windowChipTextSelected: {
-    color: colors.primary,
+    color: colors.background,
   },
   grid: {
     flexDirection: "row",
@@ -221,6 +232,9 @@ const styles = StyleSheet.create({
     width: 14,
     height: 18,
     borderRadius: 3,
+  },
+  bucketEmpty: {
+    backgroundColor: colors.surface,
   },
   summary: {
     ...typography.caption,

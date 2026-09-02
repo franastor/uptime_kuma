@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 16,
+    borderRadius: 14,
     backgroundColor: colors.surface,
   },
   input: {
@@ -130,23 +130,24 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   filterChip: {
+    minHeight: 36,
+    justifyContent: "center",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: 999,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surfaceElevated,
   },
   filterChipSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.surface,
+    borderColor: colors.text,
+    backgroundColor: colors.text,
   },
   filterChipText: {
     ...typography.caption,
     color: colors.textSecondary,
-    fontWeight: "700",
   },
   filterChipTextSelected: {
-    color: colors.primary,
+    color: colors.background,
   },
 });

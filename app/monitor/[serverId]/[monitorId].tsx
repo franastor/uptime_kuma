@@ -138,7 +138,7 @@ function getHeartbeatColor(
     case "pending":
       return colors.warning;
     case "maintenance":
-      return colors.info;
+      return colors.warning;
     default:
       return colors.textMuted;
   }
@@ -173,7 +173,8 @@ type MetricProps = {
   label: string;
   value: string;
   helper: string;
-  color: string;
+  /** Color semántico del valor (solo si representa estado: rojo caído, etc.). */
+  color?: string;
 };
 
 function Metric({
@@ -189,7 +190,7 @@ function Metric({
         <MaterialIcons
           name={icon}
           size={18}
-          color={color}
+          color={colors.textMuted}
         />
         <Text style={styles.metricLabel}>
           {label}
@@ -198,7 +199,7 @@ function Metric({
       <Text
         style={[
           styles.metricValue,
-          { color },
+          color ? { color } : null,
         ]}
       >
         {value}
@@ -384,6 +385,7 @@ export default function MonitorDetailScreen() {
           </Text>
           <AppButton
             title="Volver"
+            variant="ghost"
             onPress={() => router.back()}
           />
         </Screen>
@@ -406,15 +408,7 @@ export default function MonitorDetailScreen() {
       />
 
       <Screen scroll>
-        <View
-          style={[
-            styles.statusCard,
-            {
-              borderColor:
-                status?.color ?? colors.border,
-            },
-          ]}
-        >
+        <View style={styles.statusCard}>
           <View style={styles.statusCardHeader}>
             <View style={styles.statusIdentity}>
               <Text style={styles.monitorName}>
@@ -484,7 +478,6 @@ export default function MonitorDetailScreen() {
                 ? "Último heartbeat"
                 : `Media 24 h: ${averagePing} ms`
             }
-            color={colors.info}
           />
           <Metric
             icon="percent"
@@ -503,7 +496,6 @@ export default function MonitorDetailScreen() {
                 ? "Calculado por Uptime Kuma"
                 : "Estimación de la caché local"
             }
-            color={colors.success}
           />
           <Metric
             icon="percent"
@@ -512,7 +504,6 @@ export default function MonitorDetailScreen() {
               serverStats?.uptime30d ?? null,
             )}
             helper="Calculado por Uptime Kuma"
-            color={colors.success}
           />
           <Metric
             icon="timer-off"
@@ -524,7 +515,7 @@ export default function MonitorDetailScreen() {
             color={
               (serverStats?.uptime24h ?? 1) < 1
                 ? colors.danger
-                : colors.success
+                : undefined
             }
           />
           <Metric
@@ -534,7 +525,6 @@ export default function MonitorDetailScreen() {
               "es-ES",
             )}
             helper="Máximo 100 guardados por monitor"
-            color={colors.primary}
           />
           <Metric
             icon="verified-user"
@@ -561,7 +551,13 @@ export default function MonitorDetailScreen() {
               serverStats?.certificateValid ===
               false
                 ? colors.danger
-                : colors.info
+                : serverStats
+                      ?.certificateValid === true ||
+                    serverStats
+                      ?.certificateDaysRemaining !=
+                      null
+                  ? colors.success
+                  : undefined
             }
           />
           <Metric
@@ -572,7 +568,7 @@ export default function MonitorDetailScreen() {
             color={
               incidents > 0
                 ? colors.danger
-                : colors.success
+                : undefined
             }
           />
         </View>
@@ -687,7 +683,7 @@ export default function MonitorDetailScreen() {
             <MaterialIcons
               name="history"
               size={28}
-              color={colors.primary}
+              color={colors.textMuted}
             />
             <View style={styles.historyInformation}>
               <Text style={styles.historyValue}>
@@ -725,7 +721,7 @@ export default function MonitorDetailScreen() {
             <MaterialIcons
               name="arrow-forward"
               size={20}
-              color={colors.primary}
+              color={colors.textSecondary}
             />
           </Pressable>
         </Section>
@@ -754,7 +750,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     padding: spacing.xl,
     borderWidth: 1,
-    borderRadius: 22,
+    borderColor: colors.border,
+    borderRadius: 20,
     backgroundColor: colors.surface,
   },
   statusCardHeader: {
@@ -772,8 +769,7 @@ const styles = StyleSheet.create({
   },
   monitorType: {
     ...typography.caption,
-    color: colors.primary,
-    fontWeight: "700",
+    color: colors.textMuted,
   },
   currentStatus: {
     flexDirection: "row",
@@ -795,7 +791,7 @@ const styles = StyleSheet.create({
   },
   statusMessage: {
     ...typography.caption,
-    color: colors.textSecondary,
+    color: colors.text,
     lineHeight: 18,
   },
   metrics: {
@@ -812,7 +808,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 18,
+    borderRadius: 14,
     backgroundColor: colors.surface,
   },
   metricHeader: {
@@ -821,14 +817,14 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   metricLabel: {
-    ...typography.caption,
+    ...typography.label,
     color: colors.textSecondary,
-    fontWeight: "700",
   },
   metricValue: {
-    fontSize: 24,
-    lineHeight: 29,
-    fontWeight: "800",
+    fontFamily: "MartianMono_500Medium",
+    fontSize: 22,
+    lineHeight: 26,
+    color: colors.text,
   },
   metricHelper: {
     ...typography.caption,
@@ -879,17 +875,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   heartbeatStatus: {
-    ...typography.caption,
-    fontWeight: "800",
+    ...typography.label,
   },
   heartbeatDate: {
-    ...typography.caption,
+    ...typography.mono,
     color: colors.textMuted,
   },
   heartbeatPing: {
-    ...typography.caption,
-    color: colors.info,
-    fontWeight: "700",
+    ...typography.mono,
+    color: colors.textSecondary,
   },
   historySummary: {
     flexDirection: "row",
@@ -915,14 +909,15 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: 14,
+    borderColor: colors.border,
+    borderRadius: 8,
+    backgroundColor: colors.transparent,
   },
   historyButtonPressed: {
     opacity: 0.78,
   },
   historyButtonText: {
     ...typography.button,
-    color: colors.primary,
+    color: colors.text,
   },
 });

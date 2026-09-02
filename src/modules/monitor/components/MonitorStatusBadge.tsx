@@ -6,19 +6,22 @@ import { spacing, typography } from "@/src/shared/theme";
 
 interface MonitorStatusBadgeProps {
   monitor: Monitor;
+  /** Anuncia cambios de estado en vivo sin robar el foco (lectores de pantalla). */
+  liveRegion?: boolean;
 }
 
 export function MonitorStatusBadge({
   monitor,
+  liveRegion = false,
 }: MonitorStatusBadgeProps) {
   const status = getMonitorStatusInformation(monitor);
 
   return (
     <View
-      style={[
-        styles.badge,
-        { borderColor: status.color },
-      ]}
+      accessibilityLiveRegion={
+        liveRegion ? "polite" : undefined
+      }
+      style={styles.badge}
     >
       <View
         style={[
@@ -39,18 +42,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderWidth: 1,
-    borderRadius: 20,
   },
   dot: {
-    width: 7,
-    height: 7,
+    width: 8,
+    height: 8,
     borderRadius: 4,
   },
   text: {
-    ...typography.caption,
-    fontWeight: "700",
+    ...typography.label,
   },
 });

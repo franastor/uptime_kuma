@@ -170,7 +170,7 @@ export class NotificationService {
         vibrationPattern: [
           0, 250, 250, 250,
         ],
-        lightColor: "#5CDD8B",
+        lightColor: "#2FBF87",
         sound: "default",
       },
     );

@@ -18,6 +18,14 @@ export type MonitorFilter =
   | "paused"
   | "favorites";
 
+const FILTER_DOT_COLORS: Partial<
+  Record<MonitorFilter, string>
+> = {
+  up: colors.success,
+  down: colors.danger,
+  paused: colors.warning,
+};
+
 interface MonitorFiltersProps {
   query: string;
   filter: MonitorFilter;
@@ -81,6 +89,7 @@ export function MonitorFilters({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t("monitors.clearSearch")}
+            hitSlop={8}
             onPress={() => onQueryChange("")}
           >
             <MaterialIcons
@@ -99,21 +108,33 @@ export function MonitorFilters({
       >
         {filters.map((item) => {
           const selected = item.id === filter;
+          const dotColor = FILTER_DOT_COLORS[item.id];
 
           return (
             <Pressable
               key={item.id}
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
+              hitSlop={4}
               onPress={() => onFilterChange(item.id)}
               style={({ pressed }) => [
                 styles.filterChip,
-                selected && styles.selectedFilterChip,
-                pressed && styles.filterChipPressed,
+                selected && styles.selectedChip,
+                pressed && styles.chipPressed,
               ]}
             >
+              {dotColor ? (
+                <View
+                  style={[
+                    styles.filterDot,
+                    { backgroundColor: dotColor },
+                  ]}
+                />
+              ) : null}
               <Text
                 style={[
                   styles.filterText,
-                  selected && styles.selectedFilterText,
+                  selected && styles.selectedText,
                 ]}
               >
                 {item.label}
@@ -132,9 +153,9 @@ export function MonitorFilters({
             {!canFilterByTags ? (
               <View style={styles.premiumBadge}>
                 <MaterialIcons
-                  name="workspace-premium"
+                  name="lock"
                   size={12}
-                  color={colors.warning}
+                  color={colors.textMuted}
                 />
                 <Text style={styles.premiumBadgeText}>
                   {t("common.premium")}
@@ -143,6 +164,7 @@ export function MonitorFilters({
             ) : selectedTags.length > 0 && onClearTags ? (
               <Pressable
                 accessibilityRole="button"
+                hitSlop={8}
                 onPress={onClearTags}
               >
                 <Text style={styles.clearTags}>
@@ -167,6 +189,7 @@ export function MonitorFilters({
                   key={tag}
                   accessibilityRole="button"
                   accessibilityState={{ selected }}
+                  hitSlop={4}
                   onPress={() => {
                     if (!canFilterByTags) {
                       onRequestTagPremium?.();
@@ -181,7 +204,7 @@ export function MonitorFilters({
                     !canFilterByTags
                       ? styles.tagChipLocked
                       : null,
-                    pressed ? styles.filterChipPressed : null,
+                    pressed ? styles.chipPressed : null,
                   ]}
                 >
                   {!canFilterByTags ? (
@@ -224,7 +247,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 16,
+    borderRadius: 14,
     backgroundColor: colors.surface,
   },
   input: {
@@ -236,27 +259,34 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   filterChip: {
+    minHeight: 36,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 20,
+    borderRadius: 8,
     backgroundColor: colors.surface,
   },
-  selectedFilterChip: {
-    borderColor: colors.primary,
-    backgroundColor: colors.surfaceElevated,
+  selectedChip: {
+    borderColor: colors.text,
+    backgroundColor: colors.text,
   },
-  filterChipPressed: {
-    opacity: 0.7,
+  chipPressed: {
+    opacity: 0.75,
+  },
+  filterDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   filterText: {
     ...typography.caption,
     color: colors.textSecondary,
-    fontWeight: "700",
   },
-  selectedFilterText: {
-    color: colors.primary,
+  selectedText: {
+    color: colors.background,
   },
   tagsBlock: {
     gap: spacing.sm,
@@ -270,9 +300,6 @@ const styles = StyleSheet.create({
   tagsTitle: {
     ...typography.caption,
     color: colors.textMuted,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.4,
   },
   premiumBadge: {
     flexDirection: "row",
@@ -281,29 +308,27 @@ const styles = StyleSheet.create({
   },
   premiumBadgeText: {
     ...typography.caption,
-    color: colors.warning,
-    fontWeight: "700",
+    color: colors.textMuted,
   },
   clearTags: {
-    ...typography.caption,
+    ...typography.label,
     color: colors.primary,
-    fontWeight: "700",
   },
   tagChip: {
     maxWidth: 180,
+    minHeight: 36,
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 20,
+    borderRadius: 8,
     backgroundColor: colors.surface,
   },
   tagChipSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primary,
+    borderColor: colors.text,
+    backgroundColor: colors.text,
   },
   tagChipLocked: {
     opacity: 0.85,
@@ -311,7 +336,6 @@ const styles = StyleSheet.create({
   tagChipText: {
     ...typography.caption,
     color: colors.textSecondary,
-    fontWeight: "700",
   },
   tagChipTextSelected: {
     color: colors.background,

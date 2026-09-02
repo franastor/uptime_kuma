@@ -15,7 +15,7 @@ const SEGMENTS: {
   { key: "up", label: "UP", color: colors.success },
   { key: "down", label: "DOWN", color: colors.danger },
   { key: "pending", label: "Pendiente", color: colors.warning },
-  { key: "paused", label: "Pausado", color: colors.info },
+  { key: "paused", label: "Pausado", color: colors.warning },
   { key: "unknown", label: "Desconocido", color: colors.textMuted },
 ];
 
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
   bar: {
     flexDirection: "row",
     height: 14,
-    borderRadius: 999,
+    borderRadius: 8,
     overflow: "hidden",
     backgroundColor: colors.border,
   },
@@ -105,12 +105,11 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   legendText: {
-    ...typography.caption,
-    color: colors.text,
-    fontWeight: "600",
+    ...typography.label,
+    color: colors.textSecondary,
   },
   legendMuted: {
+    ...typography.mono,
     color: colors.textMuted,
-    fontWeight: "400",
   },
 });
