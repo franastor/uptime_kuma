@@ -98,6 +98,13 @@ export default function AccountScreen() {
         await login(email, password);
       }
 
+      // En web el Alert con botones no se renderiza (RN-web): navegamos
+      // directo a la lista de servidores para no dejar al usuario atrapado.
+      if (Platform.OS === "web") {
+        router.replace("/");
+        return;
+      }
+
       Alert.alert(
         mode === "register"
           ? "Cuenta creada"

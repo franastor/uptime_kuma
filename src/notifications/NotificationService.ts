@@ -266,6 +266,9 @@ export class NotificationService {
   }
 
   async getLastResponseDeepLink(): Promise<NotificationDeepLinkData | null> {
+    if (Platform.OS === "web") {
+      return null; // expo-notifications no soporta web
+    }
     const response =
       await Notifications.getLastNotificationResponseAsync();
 
