@@ -2,6 +2,25 @@
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
+## Build EAS (Android) — secretos desde Infisical
+
+`google-services.json` **no está en git** (ver `.gitignore`): se materializa
+localmente desde Infisical antes de compilar. `.easignore` no lo excluye del
+archive, así que el fichero local sí sube al build cloud.
+
+Antes de lanzar `eas build`:
+
+```bash
+sh scripts/load-secrets.sh        # materializa google-services.json (fail-open)
+# o, si necesitas las EXPO_PUBLIC_* en el shell del build:
+# . scripts/load-secrets.sh
+
+eas build --platform android --profile production
+```
+
+El script es fail-open: si Infisical no responde y ya existe
+`google-services.json` local, continúa; si no existe, aborta con aviso.
+
 ## Get started
 
 1. Install dependencies

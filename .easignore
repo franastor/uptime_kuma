@@ -1,3 +1,10 @@
+# .easignore — EAS Build/Update usa ESTE fichero (si existe) en lugar de
+# .gitignore para decidir qué se excluye del archive que se sube al build.
+# Espejo de .gitignore EXCEPTO google-services.json: ese fichero se
+# materializa localmente (scripts/load-secrets.sh, desde Infisical) y DEBE
+# entrar en el archive para que el prebuild de Android lo encuentre
+# (app.json → android.googleServicesFile).
+
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
 # Dependencies
@@ -45,9 +52,9 @@ yarn-error.*
 .env.*
 !.env.example
 
-# Firebase / credenciales móviles (NUNCA subir)
+# Firebase / credenciales móviles (NUNCA subir) — google-services.json NO se
+# excluye aquí (materializado por scripts/load-secrets.sh antes del build)
 GoogleService-Info.plist
-google-services.json
 *-firebase*.json
 *firebase-adminsdk*.json
 *-service-account*.json
