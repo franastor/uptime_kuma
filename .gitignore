@@ -47,6 +47,7 @@ yarn-error.*
 
 # Firebase / credenciales móviles (NUNCA subir)
 GoogleService-Info.plist
+google-services.json
 *-firebase*.json
 *firebase-adminsdk*.json
 *-service-account*.json
